@@ -1,0 +1,295 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>OpenStack Havana Ceilometer安装指导 | crAzyli0n&#39;s blog</title>
+  <meta name="author" content="crAzyli0n">
+  
+  <meta name="description" content="crAzyli0n&#39;s blog">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="OpenStack Havana Ceilometer安装指导"/>
+  <meta property="og:site_name" content="crAzyli0n&#39;s blog"/>
+
+  
+    <meta property="og:image" content="undefined"/>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="crAzyli0n&#39;s blog" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+
+</head>
+
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">crAzyli0n&#39;s blog</a></h1>
+  <h2><a href="/">记录前进中的点点滴滴</a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+      <li><a href="/about">About</a></li>
+    
+    <li> <a href="https://github.com/xidianpanpei">GitHub</a> </li>
+    <li> <a href="/atom.xml">RSS</a> </li>
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div></header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft"><div id="wrapper"><article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2014-03-08T15:44:07.000Z"><a href="/2014/03/08/ceilometer-deploy-guide/">2014-03-08</a></time>
+      
+      
+  
+    <h1 class="title">OpenStack Havana Ceilometer安装指导</h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p><img src="http://ww3.sinaimg.cn/large/7458d655gw1f70ojqmn8mj20dw0aft8t.jpg" alt=""></p>
+<h2 id="题记"><a href="#题记" class="headerlink" title="题记"></a>题记</h2><p>由于我们的系统在很早之前就部署完成了。当时Ceilomter刚刚在Havana版本中发布，我们主要专注于网络和虚拟化部分，所以当时就没有在我们的Havana版本环境中安装Ceilomter，但是现在由于需要，开始研究OpenStack的监控功能， 所以就需要在我们现有的系统上补上Ceilomter了。利用了网上的各种教程，但是发现都有些问题，最终不得不依靠官方的Havana部署教程，利用其Ceilometer安装那一节的教程，完成了Ceilometer的完美部署。</p>
+<a id="more"></a>
+<h2 id="教程"><a href="#教程" class="headerlink" title="教程"></a>教程</h2><p>我们的系统是依据OpenStack Havana版本部署的，整个系统采用网络集中式部署，也就是说我们的系统分为三个部分：控制节点，网络节点和计算节点。具体的系统相关信息可以参照该篇<a href="https://github.com/xidianpanpei/OpenStack-Havana-Install-Guide-CN-OVS_MutliNode" target="_blank" rel="external">教程</a>。</p>
+<h3 id="所有节点"><a href="#所有节点" class="headerlink" title="所有节点"></a>所有节点</h3><p>我们需要在所有的节点安装以下的安装包，这个是Ceilometer的实现基础：</p>
+<pre><code>sudo apt-get install python-ceilometer  ceilometer-common
+</code></pre><h3 id="控制节点"><a href="#控制节点" class="headerlink" title="控制节点"></a>控制节点</h3><p>1.在控制节点安装以下的包：</p>
+<pre><code>sudo apt-get install ceilometer-api ceilometer-collector ceilometer-agent-central python-ceilometerclient
+</code></pre><p>2.如此之后，控制节点上就已经完成了Ceilometer大部分安装了，接下来就是安装mogodb数据库，这个是Ceilometer默认的数据存储的仓库：</p>
+<pre><code>sudo apt-get install mongodb
+</code></pre><p>3.接着我们开始配置mongodb监听所有的网络接口请求：</p>
+<pre><code>sudo sed -i &apos;s/127.0.0.1/0.0.0.0/g&apos; /etc/mongodb.conf
+</code></pre><p>4.重启mongodb服务，让配置生效：</p>
+<pre><code>service mongodb restart
+</code></pre><p>5.创建数据库ceilometer和对应的用户：</p>
+<p>首先进入mongodb：</p>
+<pre><code>mongo
+</code></pre><p>接着执行创建用户命令：</p>
+<pre><code>&gt;use ceilometer    
+&gt;db.addUser( { user: &quot;ceilometer&quot;, pwd: &quot;CEILOMETER_DBPASS&quot;, roles: [ &quot;readWrite&quot;, &quot;dbAdmin&quot; ]} )
+</code></pre><p>6.编辑/etc/ceilometer/ceilometer.conf文件，配置数据库参数：<br><figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">[database]</span></span><br><span class="line"><span class="comment"># The SQLAlchemy connection string used to connect to the</span></span><br><span class="line"><span class="comment"># database (string value)</span></span><br><span class="line"><span class="attr">connection</span> = mongodb://ceilometer:CEILOMETER_DBPASS@controller:<span class="number">27017</span>/ceilometer</span><br></pre></td></tr></table></figure></p>
+<p>7.利用openssl生成一个随机token密钥，该密钥用于Ceilometer各个组件之间通信加密使用：</p>
+<pre><code>openssl rand -hex 10    
+cefafd2288d0e4e43005 （注：这是命令生成的随机token）
+</code></pre><p>编辑/etc/ceilometer/ceilometer.conf文件，修改中间的 <code>[publisher_rpc]</code> 选项，配置<code>token</code>：<br><figure class="highlight ocaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[publisher_rpc]</span><br><span class="line"># <span class="type">Secret</span> <span class="keyword">value</span> <span class="keyword">for</span> signing metering messages (<span class="built_in">string</span> <span class="keyword">value</span>)</span><br><span class="line">metering_secret = cefafd2288d0e4e43005</span><br><span class="line">...</span><br></pre></td></tr></table></figure></p>
+<p>8.编辑/etc/ceilometer/ceilometer.conf，修改<code>RabbitMQ</code>配置选项：<br><figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">rabbit_host</span> = controller_ip_address（自行修改）</span><br></pre></td></tr></table></figure></p>
+<p>9.编辑/etc/ceilometer/ceilometer.conf，修改日志打印目录：<br><figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">[DEFAULT]</span></span><br><span class="line"><span class="attr">log_dir</span> = /var/log/ceilometer</span><br></pre></td></tr></table></figure></p>
+<p>10.Keystone相关信息创建：</p>
+<pre><code>keystone user-create --name=ceilometer --pass=CEILOMETER_PASS --email=ceilometer@example.com    
+keystone user-role-add --user=ceilometer --tenant=service --role=admin        
+keystone service-create --name=ceilometer --type=metering --description=&quot;Ceilometer Telemetry Service&quot;        
+keystone endpoint-create --service-id=the_service_id_above --publicurl=http://controller_ip_address:8777 --internalurl=http://controller_ip_address:8777 --adminurl=http://controller_ip_address:8777
+</code></pre><p>11.编辑/etc/ceilometer/ceilometer.conf，修改相关配置：<br><figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">[keystone_authtoken]</span></span><br><span class="line"><span class="attr">auth_host</span> = controller_ip_address</span><br><span class="line"><span class="attr">auth_port</span> = <span class="number">35357</span></span><br><span class="line"><span class="attr">auth_protocol</span> = http</span><br><span class="line"><span class="attr">auth_uri</span> = http://controller_ip_address:<span class="number">5000</span></span><br><span class="line"><span class="attr">admin_tenant_name</span> = service</span><br><span class="line"><span class="attr">admin_user</span> = ceilometer</span><br><span class="line"><span class="attr">admin_password</span> = CEILOMETER_PASS</span><br><span class="line"></span><br><span class="line"><span class="section">[service_credentials]</span></span><br><span class="line"><span class="attr">os_username</span> = ceilometer</span><br><span class="line"><span class="attr">os_tenant_name</span> = service</span><br><span class="line"><span class="attr">os_password</span> = CEILOMETER_PASS</span><br></pre></td></tr></table></figure></p>
+<p>12.重启Ceilometer相关服务，使其生效：</p>
+<pre><code>service ceilometer-agent-central restart    
+service ceilometer-api restart    
+service ceilometer-collector restart
+</code></pre><p>13.编辑/etc/glance/glance-api.conf，修改<code>Glance</code>配置：<br><figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">notifier_strategy</span> = rabbit</span><br><span class="line"><span class="attr">rabbit_host</span> = controller</span><br></pre></td></tr></table></figure></p>
+<p>重启相关服务：</p>
+<pre><code>service glance-registry restart        
+service glance-api restart
+</code></pre><p>14.编辑/etc/cinder/cinder.conf，修改<code>Cinder</code>配置：<br><figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">control_exchange = cinder</span><br><span class="line">notification_driver = cinder<span class="selector-class">.openstack</span><span class="selector-class">.common</span><span class="selector-class">.notifier</span><span class="selector-class">.rpc_notifier</span></span><br></pre></td></tr></table></figure></p>
+<p>重启相关服务：</p>
+<pre><code>service cinder-volume restart    
+service cinder-api restart
+</code></pre><p>注：由于我们的环境中没有安装Swift，所以有关Swift配置的部分就省略了。需要的话，请查看本教程中的参考资料。</p>
+<h3 id="计算节点"><a href="#计算节点" class="headerlink" title="计算节点"></a>计算节点</h3><p>1.安装计算节点所需服务：</p>
+<pre><code>sudo apt-get install ceilometer-agent-compute
+</code></pre><p>2.编辑 /etc/nova/nova.conf文件，配置Nova相关选项：<br><figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[DEFAULT]</span><br><span class="line">...</span><br><span class="line">instance_usage_audit = True</span><br><span class="line">instance_usage_audit_period = hour</span><br><span class="line">notify_on_state_change = vm_and_task_state</span><br><span class="line">notification_driver = nova.openstack.common.notifier.rpc_notifier</span><br><span class="line">notification_driver = ceilometer.compute.nova_notifier</span><br></pre></td></tr></table></figure></p>
+<p>3.编辑/etc/ceilometer/ceilometer.conf，配置计算节点上Ceilometer的选项：<br><figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">[publisher_rpc]</span></span><br><span class="line"><span class="comment"># Secret value for signing metering messages (string value)</span></span><br><span class="line"><span class="attr">metering_secret</span> = cefafd2288d0e4e43005</span><br><span class="line"></span><br><span class="line"><span class="section">[DEFAULT]</span></span><br><span class="line"><span class="attr">rabbit_host</span> = controller</span><br><span class="line"></span><br><span class="line"><span class="section">[keystone_authtoken]</span></span><br><span class="line"><span class="attr">auth_host</span> = controller_ip_address</span><br><span class="line"><span class="attr">auth_port</span> = <span class="number">35357</span></span><br><span class="line"><span class="attr">auth_protocol</span> = http</span><br><span class="line"><span class="attr">admin_tenant_name</span> = service</span><br><span class="line"><span class="attr">admin_user</span> = ceilometer</span><br><span class="line"><span class="attr">admin_password</span> = CEILOMETER_PASS</span><br><span class="line"></span><br><span class="line"><span class="section">[service_credentials]</span></span><br><span class="line"><span class="attr">os_auth_url</span> = http://controller_ip_address:<span class="number">5000</span>/v2.<span class="number">0</span></span><br><span class="line"><span class="attr">os_username</span> = ceilometer</span><br><span class="line"><span class="attr">os_tenant_name</span> = service</span><br><span class="line"><span class="attr">os_password</span> = CEILOMETER_PASS</span><br><span class="line"></span><br><span class="line"><span class="section">[DEFAULT]</span></span><br><span class="line"><span class="attr">log_dir</span> = /var/log/ceilometer</span><br></pre></td></tr></table></figure></p>
+<p>4.重启服务使得配置生效：</p>
+<pre><code>service ceilometer-agent-compute restart
+</code></pre><h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><p>1.<a href="http://docs.openstack.org/havana/install-guide/install/apt/content/ceilometer-install.html" target="_blank" rel="external">Install the Telemetry module - OpenStack Installation Guide for Ubuntu 12.04 (LTS)  - havana</a><br>2.<a href="http://www.cnblogs.com/awy-blog/p/3447176.html" target="_blank" rel="external">Ubuntu 12.04 Server OpenStack Havana多节点(OVS+GRE)安装</a><br>3.<a href="http://yansu.org/2013/10/01/deploy-ceilometer-of-openstack.html" target="_blank" rel="external">部署Ceilometer到已有环境中</a></p>
+
+      
+    </div>
+    <footer>
+      
+        
+  
+  <div class="categories">
+    <a href="/categories/OpenStack/">OpenStack</a>
+  </div>
+
+        
+  
+  <div class="tags">
+    <a href="/tags/OpenStack/">OpenStack</a>, <a href="/tags/Ceilometer/">Ceilometer</a>
+  </div>
+
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+<section id="comment">
+  <h1 class="title">留言</h1>
+  
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+  
+</section>
+
+</div></div>
+    <aside id="sidebar" class="alignright">
+  <div class="search">
+  <form action="//google.com/search" method="get" accept-charset="utf-8">
+    <input type="search" name="q" results="0" placeholder="搜索">
+    <input type="hidden" name="q" value="site:xidianpanpei.github.io">
+  </form>
+</div>
+
+  
+<div class="widget tag">
+  <h3 class="title">最新文章</h3>
+  <ul class="entry">
+    
+      <li>
+        <a href="/2015/04/30/build-windows-work-environment/">Windows终端环境搭建</a>
+      </li>
+    
+      <li>
+        <a href="/2014/10/08/baidu-interview/">百度系统工程师初面之经历</a>
+      </li>
+    
+      <li>
+        <a href="/2014/08/12/ceilometer-architecture-analyse/">Ceilometer架构简要分析</a>
+      </li>
+    
+      <li>
+        <a href="/2014/05/22/openstack-neutron-analyse/">OpenStack Neutron解析</a>
+      </li>
+    
+      <li>
+        <a href="/2014/03/28/design-patterns-factory-mode/">设计模式之工厂模式</a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+<div class="widget tagcloud">
+  <h3 class="title">标签云</h3>
+  <div class="entry">
+    <a href="/tags/360WiFi/" style="font-size: 10px;">360WiFi</a> <a href="/tags/ACM/" style="font-size: 12.5px;">ACM</a> <a href="/tags/Babun/" style="font-size: 10px;">Babun</a> <a href="/tags/Ceilometer/" style="font-size: 12.5px;">Ceilometer</a> <a href="/tags/C语言/" style="font-size: 10px;">C语言</a> <a href="/tags/ElementaryOS/" style="font-size: 10px;">ElementaryOS</a> <a href="/tags/Gmail/" style="font-size: 10px;">Gmail</a> <a href="/tags/Google-Code/" style="font-size: 10px;">Google Code</a> <a href="/tags/JUnit/" style="font-size: 10px;">JUnit</a> <a href="/tags/LaTeX/" style="font-size: 12.5px;">LaTeX</a> <a href="/tags/Neutron/" style="font-size: 12.5px;">Neutron</a> <a href="/tags/OpenStack/" style="font-size: 17.5px;">OpenStack</a> <a href="/tags/PHP/" style="font-size: 10px;">PHP</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/Resume/" style="font-size: 10px;">Resume</a> <a href="/tags/TortoiseSVN/" style="font-size: 10px;">TortoiseSVN</a> <a href="/tags/Ubuntu/" style="font-size: 10px;">Ubuntu</a> <a href="/tags/Windows/" style="font-size: 10px;">Windows</a> <a href="/tags/Yahoo/" style="font-size: 10px;">Yahoo</a> <a href="/tags/Yii/" style="font-size: 10px;">Yii</a> <a href="/tags/commons-logging/" style="font-size: 10px;">commons-logging</a> <a href="/tags/freegate/" style="font-size: 10px;">freegate</a> <a href="/tags/git/" style="font-size: 10px;">git</a> <a href="/tags/vbs/" style="font-size: 10px;">vbs</a> <a href="/tags/代码管理/" style="font-size: 10px;">代码管理</a> <a href="/tags/写作/" style="font-size: 10px;">写作</a> <a href="/tags/博客/" style="font-size: 12.5px;">博客</a> <a href="/tags/堆排序/" style="font-size: 10px;">堆排序</a> <a href="/tags/安庆/" style="font-size: 10px;">安庆</a> <a href="/tags/密码/" style="font-size: 10px;">密码</a> <a href="/tags/工作/" style="font-size: 10px;">工作</a> <a href="/tags/工作环境/" style="font-size: 10px;">工作环境</a> <a href="/tags/工厂模式/" style="font-size: 10px;">工厂模式</a> <a href="/tags/开源/" style="font-size: 15px;">开源</a> <a href="/tags/快速排序/" style="font-size: 10px;">快速排序</a> <a href="/tags/抽象工厂模式/" style="font-size: 10px;">抽象工厂模式</a> <a href="/tags/指针/" style="font-size: 10px;">指针</a> <a href="/tags/机试/" style="font-size: 10px;">机试</a> <a href="/tags/测试/" style="font-size: 10px;">测试</a> <a href="/tags/浙大/" style="font-size: 10px;">浙大</a> <a href="/tags/源码分析/" style="font-size: 10px;">源码分析</a> <a href="/tags/爬虫/" style="font-size: 10px;">爬虫</a> <a href="/tags/生活/" style="font-size: 12.5px;">生活</a> <a href="/tags/登录/" style="font-size: 10px;">登录</a> <a href="/tags/百度/" style="font-size: 10px;">百度</a> <a href="/tags/碎碎念/" style="font-size: 20px;">碎碎念</a> <a href="/tags/简历/" style="font-size: 10px;">简历</a> <a href="/tags/算法/" style="font-size: 15px;">算法</a> <a href="/tags/终端/" style="font-size: 10px;">终端</a> <a href="/tags/翻墙/" style="font-size: 10px;">翻墙</a> <a href="/tags/论文/" style="font-size: 10px;">论文</a> <a href="/tags/设计模式/" style="font-size: 12.5px;">设计模式</a> <a href="/tags/邮箱/" style="font-size: 10px;">邮箱</a> <a href="/tags/面试/" style="font-size: 10px;">面试</a> <a href="/tags/骑行/" style="font-size: 10px;">骑行</a>
+  </div>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">分类</h3>
+  <ul class="entry">
+  
+    <li><a href="/categories/C-C/">C/C++</a><small>1</small></li>
+  
+    <li><a href="/categories/Git/">Git</a><small>1</small></li>
+  
+    <li><a href="/categories/LaTeX/">LaTeX</a><small>2</small></li>
+  
+    <li><a href="/categories/OpenStack/">OpenStack</a><small>4</small></li>
+  
+    <li><a href="/categories/PHP/">PHP</a><small>1</small></li>
+  
+    <li><a href="/categories/Python/">Python</a><small>1</small></li>
+  
+    <li><a href="/categories/博客/">博客</a><small>1</small></li>
+  
+    <li><a href="/categories/学习/">学习</a><small>7</small></li>
+  
+    <li><a href="/categories/开源/">开源</a><small>1</small></li>
+  
+    <li><a href="/categories/杂项/">杂项</a><small>7</small></li>
+  
+    <li><a href="/categories/生活/">生活</a><small>4</small></li>
+  
+    <li><a href="/categories/算法/">算法</a><small>2</small></li>
+  
+    <li><a href="/categories/设计模式/">设计模式</a><small>2</small></li>
+  
+    <li><a href="/categories/评论/">评论</a><small>1</small></li>
+  
+    <li><a href="/categories/面试/">面试</a><small>1</small></li>
+  
+  </ul>
+</div>
+
+
+  <div class="widget tag">
+<h3 class="title">友情链接</h3>
+<ul class="entry">
+<li><a href="http://wtz123.github.io/" title="花开只一季，一季开一年的男人">Tony's Blog</a></li>
+</ul>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2017 crAzyli0n
+  
+</div>
+<div class="clearfix"></div></footer>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+<script type="text/javascript">
+var disqus_shortname = 'crazyli0nsblog';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+</body>
+</html>

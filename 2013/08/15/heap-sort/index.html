@@ -1,0 +1,247 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>基础算法之堆排序 | crAzyli0n&#39;s blog</title>
+  <meta name="author" content="crAzyli0n">
+  
+  <meta name="description" content="crAzyli0n&#39;s blog">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="基础算法之堆排序"/>
+  <meta property="og:site_name" content="crAzyli0n&#39;s blog"/>
+
+  
+    <meta property="og:image" content="undefined"/>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="crAzyli0n&#39;s blog" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+
+</head>
+
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">crAzyli0n&#39;s blog</a></h1>
+  <h2><a href="/">记录前进中的点点滴滴</a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+      <li><a href="/about">About</a></li>
+    
+    <li> <a href="https://github.com/xidianpanpei">GitHub</a> </li>
+    <li> <a href="/atom.xml">RSS</a> </li>
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div></header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft"><div id="wrapper"><article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2013-08-15T18:46:00.000Z"><a href="/2013/08/15/heap-sort/">2013-08-15</a></time>
+      
+      
+  
+    <h1 class="title">基础算法之堆排序</h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p>最近一直都是比较闲的状态中，毕竟还是在过暑假嘛。于是拿起那本自从买来就没看过的「算法导论」看看，以前在网上总是看见将这本书推荐给入门的新人，不得不说这真的有点坑人的。</p>
+<p>今天才刚刚拿起来，直接忽略第一部分的所谓「基础知识」，其实是看到那么多非基础的知识一下在看不下去了。看了下「堆排序」的章节，顺便回忆了一下以前学习的「堆排序」的知识。</p>
+<p>「堆」无外乎就是一个特殊的完全二叉树，其特殊性在于堆的每个子树的根节点的值为该子树中的最大值/最小值，对应的堆就定义为「大顶堆/小顶堆」。「堆排序」的时间复杂度为O(nlgn)，这在排序算法中还是一个不错的时间复杂度的。接下来就是用代码实现了一下「堆排序」，这是不得不说下「算法导论」中的伪码还是不错的，至少比严奶奶的那本「数据结构」要强多了，但是这样的伪码有点不利于代码的实现，估计是太过于简要了吧。</p>
+<a id="more"></a>
+<p>我是用的Java实现，其实是找了网上的其他代码参照着书本的伪码改写的，其中还因为忘记了Java中没有引用这种东西的，导致调试代码调了好长时间。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.test;	</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> crazylion</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SortTest</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">heapAdjust</span><span class="params">(<span class="keyword">int</span>[] a, <span class="keyword">int</span> i, <span class="keyword">int</span> size)</span></span></span><br><span class="line"><span class="function">	</span>&#123;</span><br><span class="line">		<span class="keyword">int</span> lchild = <span class="number">2</span>*i;</span><br><span class="line">		<span class="keyword">int</span> rchild = <span class="number">2</span>*i + <span class="number">1</span>;</span><br><span class="line">		</span><br><span class="line">		<span class="keyword">int</span> max = i;</span><br><span class="line">		</span><br><span class="line">		<span class="keyword">if</span>(i &lt;= size/<span class="number">2</span>)</span><br><span class="line">		&#123;</span><br><span class="line">			<span class="keyword">if</span>(lchild &lt;= size &amp;&amp; a[lchild] &gt; a[max])</span><br><span class="line">			&#123;</span><br><span class="line">				max = lchild;</span><br><span class="line">			&#125;</span><br><span class="line">			</span><br><span class="line">			<span class="keyword">if</span>(rchild &lt;= size &amp;&amp; a[rchild] &gt; a[max])</span><br><span class="line">			&#123;</span><br><span class="line">				max = rchild;</span><br><span class="line">			&#125;</span><br><span class="line">			</span><br><span class="line">			<span class="keyword">if</span>(max != i)</span><br><span class="line">			&#123;</span><br><span class="line">				<span class="comment">//因为Java没有引用，只能多写点了</span></span><br><span class="line">				<span class="keyword">int</span> tmp = a[i];</span><br><span class="line">				a[i] = a[max];</span><br><span class="line">				a[max] = tmp;</span><br><span class="line">				heapAdjust(a, max, size);</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">bulidHeap</span><span class="params">(<span class="keyword">int</span>[] a, <span class="keyword">int</span> size)</span></span></span><br><span class="line"><span class="function">	</span>&#123;</span><br><span class="line">		<span class="keyword">for</span>(<span class="keyword">int</span> i = size/<span class="number">2</span>; i &gt;= <span class="number">1</span>; i--)</span><br><span class="line">		&#123;</span><br><span class="line">			heapAdjust(a, i, size);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">heapSort</span><span class="params">(<span class="keyword">int</span>[] a, <span class="keyword">int</span> size)</span></span></span><br><span class="line"><span class="function">	</span>&#123;</span><br><span class="line">		bulidHeap(a, size);</span><br><span class="line">		<span class="keyword">for</span>(<span class="keyword">int</span> i = size; i &gt;= <span class="number">1</span>; i--)</span><br><span class="line">		&#123;</span><br><span class="line">			<span class="comment">//因为Java没有引用，只能多写点了</span></span><br><span class="line">			<span class="keyword">int</span> tmp = a[<span class="number">1</span>];</span><br><span class="line">			a[<span class="number">1</span>] = a[i];</span><br><span class="line">			a[i] = tmp;</span><br><span class="line">			heapAdjust(a, <span class="number">1</span>, i - <span class="number">1</span>);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span></span></span><br><span class="line"><span class="function">	</span>&#123;</span><br><span class="line">		<span class="keyword">int</span>[] heap = <span class="keyword">new</span> <span class="keyword">int</span>[<span class="number">11</span>];</span><br><span class="line">		<span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">1</span>; i &lt;= <span class="number">10</span>; i++)</span><br><span class="line">		&#123;</span><br><span class="line">			heap[i] = (<span class="keyword">int</span>) (Math.random()*<span class="number">1000</span>);</span><br><span class="line">			System.out.println(<span class="string">"==&gt;"</span> + heap[i]);</span><br><span class="line">		&#125;</span><br><span class="line">		</span><br><span class="line">		SortTest sortTest = <span class="keyword">new</span> SortTest();</span><br><span class="line">		sortTest.heapSort(heap, <span class="number">10</span>);</span><br><span class="line">				</span><br><span class="line">		<span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">1</span>; i &lt;= <span class="number">10</span>; i++)</span><br><span class="line">		&#123;</span><br><span class="line">			System.out.println(<span class="string">"--&gt;"</span> + heap[i]);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+      
+    </div>
+    <footer>
+      
+        
+  
+  <div class="categories">
+    <a href="/categories/算法/">算法</a>
+  </div>
+
+        
+  
+  <div class="tags">
+    <a href="/tags/算法/">算法</a>, <a href="/tags/堆排序/">堆排序</a>
+  </div>
+
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+<section id="comment">
+  <h1 class="title">留言</h1>
+  
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+  
+</section>
+
+</div></div>
+    <aside id="sidebar" class="alignright">
+  <div class="search">
+  <form action="//google.com/search" method="get" accept-charset="utf-8">
+    <input type="search" name="q" results="0" placeholder="搜索">
+    <input type="hidden" name="q" value="site:xidianpanpei.github.io">
+  </form>
+</div>
+
+  
+<div class="widget tag">
+  <h3 class="title">最新文章</h3>
+  <ul class="entry">
+    
+      <li>
+        <a href="/2015/04/30/build-windows-work-environment/">Windows终端环境搭建</a>
+      </li>
+    
+      <li>
+        <a href="/2014/10/08/baidu-interview/">百度系统工程师初面之经历</a>
+      </li>
+    
+      <li>
+        <a href="/2014/08/12/ceilometer-architecture-analyse/">Ceilometer架构简要分析</a>
+      </li>
+    
+      <li>
+        <a href="/2014/05/22/openstack-neutron-analyse/">OpenStack Neutron解析</a>
+      </li>
+    
+      <li>
+        <a href="/2014/03/28/design-patterns-factory-mode/">设计模式之工厂模式</a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+<div class="widget tagcloud">
+  <h3 class="title">标签云</h3>
+  <div class="entry">
+    <a href="/tags/360WiFi/" style="font-size: 10px;">360WiFi</a> <a href="/tags/ACM/" style="font-size: 12.5px;">ACM</a> <a href="/tags/Babun/" style="font-size: 10px;">Babun</a> <a href="/tags/Ceilometer/" style="font-size: 12.5px;">Ceilometer</a> <a href="/tags/C语言/" style="font-size: 10px;">C语言</a> <a href="/tags/ElementaryOS/" style="font-size: 10px;">ElementaryOS</a> <a href="/tags/Gmail/" style="font-size: 10px;">Gmail</a> <a href="/tags/Google-Code/" style="font-size: 10px;">Google Code</a> <a href="/tags/JUnit/" style="font-size: 10px;">JUnit</a> <a href="/tags/LaTeX/" style="font-size: 12.5px;">LaTeX</a> <a href="/tags/Neutron/" style="font-size: 12.5px;">Neutron</a> <a href="/tags/OpenStack/" style="font-size: 17.5px;">OpenStack</a> <a href="/tags/PHP/" style="font-size: 10px;">PHP</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/Resume/" style="font-size: 10px;">Resume</a> <a href="/tags/TortoiseSVN/" style="font-size: 10px;">TortoiseSVN</a> <a href="/tags/Ubuntu/" style="font-size: 10px;">Ubuntu</a> <a href="/tags/Windows/" style="font-size: 10px;">Windows</a> <a href="/tags/Yahoo/" style="font-size: 10px;">Yahoo</a> <a href="/tags/Yii/" style="font-size: 10px;">Yii</a> <a href="/tags/commons-logging/" style="font-size: 10px;">commons-logging</a> <a href="/tags/freegate/" style="font-size: 10px;">freegate</a> <a href="/tags/git/" style="font-size: 10px;">git</a> <a href="/tags/vbs/" style="font-size: 10px;">vbs</a> <a href="/tags/代码管理/" style="font-size: 10px;">代码管理</a> <a href="/tags/写作/" style="font-size: 10px;">写作</a> <a href="/tags/博客/" style="font-size: 12.5px;">博客</a> <a href="/tags/堆排序/" style="font-size: 10px;">堆排序</a> <a href="/tags/安庆/" style="font-size: 10px;">安庆</a> <a href="/tags/密码/" style="font-size: 10px;">密码</a> <a href="/tags/工作/" style="font-size: 10px;">工作</a> <a href="/tags/工作环境/" style="font-size: 10px;">工作环境</a> <a href="/tags/工厂模式/" style="font-size: 10px;">工厂模式</a> <a href="/tags/开源/" style="font-size: 15px;">开源</a> <a href="/tags/快速排序/" style="font-size: 10px;">快速排序</a> <a href="/tags/抽象工厂模式/" style="font-size: 10px;">抽象工厂模式</a> <a href="/tags/指针/" style="font-size: 10px;">指针</a> <a href="/tags/机试/" style="font-size: 10px;">机试</a> <a href="/tags/测试/" style="font-size: 10px;">测试</a> <a href="/tags/浙大/" style="font-size: 10px;">浙大</a> <a href="/tags/源码分析/" style="font-size: 10px;">源码分析</a> <a href="/tags/爬虫/" style="font-size: 10px;">爬虫</a> <a href="/tags/生活/" style="font-size: 12.5px;">生活</a> <a href="/tags/登录/" style="font-size: 10px;">登录</a> <a href="/tags/百度/" style="font-size: 10px;">百度</a> <a href="/tags/碎碎念/" style="font-size: 20px;">碎碎念</a> <a href="/tags/简历/" style="font-size: 10px;">简历</a> <a href="/tags/算法/" style="font-size: 15px;">算法</a> <a href="/tags/终端/" style="font-size: 10px;">终端</a> <a href="/tags/翻墙/" style="font-size: 10px;">翻墙</a> <a href="/tags/论文/" style="font-size: 10px;">论文</a> <a href="/tags/设计模式/" style="font-size: 12.5px;">设计模式</a> <a href="/tags/邮箱/" style="font-size: 10px;">邮箱</a> <a href="/tags/面试/" style="font-size: 10px;">面试</a> <a href="/tags/骑行/" style="font-size: 10px;">骑行</a>
+  </div>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">分类</h3>
+  <ul class="entry">
+  
+    <li><a href="/categories/C-C/">C/C++</a><small>1</small></li>
+  
+    <li><a href="/categories/Git/">Git</a><small>1</small></li>
+  
+    <li><a href="/categories/LaTeX/">LaTeX</a><small>2</small></li>
+  
+    <li><a href="/categories/OpenStack/">OpenStack</a><small>4</small></li>
+  
+    <li><a href="/categories/PHP/">PHP</a><small>1</small></li>
+  
+    <li><a href="/categories/Python/">Python</a><small>1</small></li>
+  
+    <li><a href="/categories/博客/">博客</a><small>1</small></li>
+  
+    <li><a href="/categories/学习/">学习</a><small>7</small></li>
+  
+    <li><a href="/categories/开源/">开源</a><small>1</small></li>
+  
+    <li><a href="/categories/杂项/">杂项</a><small>7</small></li>
+  
+    <li><a href="/categories/生活/">生活</a><small>4</small></li>
+  
+    <li><a href="/categories/算法/">算法</a><small>2</small></li>
+  
+    <li><a href="/categories/设计模式/">设计模式</a><small>2</small></li>
+  
+    <li><a href="/categories/评论/">评论</a><small>1</small></li>
+  
+    <li><a href="/categories/面试/">面试</a><small>1</small></li>
+  
+  </ul>
+</div>
+
+
+  <div class="widget tag">
+<h3 class="title">友情链接</h3>
+<ul class="entry">
+<li><a href="http://wtz123.github.io/" title="花开只一季，一季开一年的男人">Tony's Blog</a></li>
+</ul>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2017 crAzyli0n
+  
+</div>
+<div class="clearfix"></div></footer>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+<script type="text/javascript">
+var disqus_shortname = 'crazyli0nsblog';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+</body>
+</html>

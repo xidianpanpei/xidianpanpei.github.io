@@ -1,0 +1,264 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>OpenStack Neutron运行机制解析概要 | crAzyli0n&#39;s blog</title>
+  <meta name="author" content="crAzyli0n">
+  
+  <meta name="description" content="crAzyli0n&#39;s blog">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="OpenStack Neutron运行机制解析概要"/>
+  <meta property="og:site_name" content="crAzyli0n&#39;s blog"/>
+
+  
+    <meta property="og:image" content="undefined"/>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="crAzyli0n&#39;s blog" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+
+</head>
+
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">crAzyli0n&#39;s blog</a></h1>
+  <h2><a href="/">记录前进中的点点滴滴</a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+      <li><a href="/about">About</a></li>
+    
+    <li> <a href="https://github.com/xidianpanpei">GitHub</a> </li>
+    <li> <a href="/atom.xml">RSS</a> </li>
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div></header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft"><div id="wrapper"><article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2013-12-04T18:40:00.000Z"><a href="/2013/12/04/openstack-neutron-mechanism-introduce/">2013-12-04</a></time>
+      
+      
+  
+    <h1 class="title">OpenStack Neutron运行机制解析概要</h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p><img src="http://ww2.sinaimg.cn/large/7458d655gw1f8mfc0qf7cj20g405kt9d.jpg" alt=""></p>
+<p>自从开学以来，玩<code>OpenStack</code>也已经3个月了，这段时间主要把精力投在了<code>OpenStack</code>的安装部署和网络组件<code>Neutron</code>的研究上了。这期间零零散散在安装部署和<code>Neutron</code>运作原理上来回切换，有点在实践中学习的味道，虽然在安装部署的过程遇到了不少的问题，也一一都给解决了。然而，总是觉得对于<code>Neutron</code>的机制理解的还是不够透彻。前一阵子刚刚部署好一套<code>Havana</code>版本的系统，并开始投入使用。这阵子又开始投入<code>OpenStack</code>的IPv6的试验中，因为需要对底层的路由机制进行彻底的了解，所以不得不又开始重新捋了一遍这方面的知识，在网上Google了一把资料，这次算是彻底的把<code>Neutron</code>的运作机制彻底的理清楚了，之前那些半懂不懂的东西，现在也是觉得豁然开朗了。</p>
+<a id="more"></a>
+<p>这次在<a href="http://openstack.redhat.com/Networking_in_too_much_detail" target="_blank" rel="external">RDO</a>找到了想要的资料，至少这篇资料对于之前的那些零散的知识做了一个很好的连贯，对于自己而言，算是把<code>Neutron</code>讲解彻底明了,现在把那篇材料翻译下再糅合点自己的理解吧。</p>
+<p>借用原资料上的一张架构图为开篇：</p>
+<p><img src="/img/2013/12/04/Neutron_architecture.png" alt=""></p>
+<p>从这张架构图中，我们可以明显的看到有两个物理主机，计算节点和网络节点，这是因为采用了网络节点集中式的部署方式。至于为什么采用这种部署方式，那是因为自从E版之后，<code>OpenStack</code>开始把<code>network</code>功能从<code>Nova</code>中分离出来，使之成为独立的<code>Neutron</code>组件。而坑爹的是，分离后的版本，反而不支持网络分布式部署的特性了，所以目前的<code>Grizzly</code>和<code>Havana</code>版本都是只能使用网络集中式部署方案的，或者说，集群中只能存在一个部署网络功能的节点。</p>
+<h2 id="计算节点：虚拟机实例的网络"><a href="#计算节点：虚拟机实例的网络" class="headerlink" title="计算节点：虚拟机实例的网络"></a>计算节点：虚拟机实例的网络</h2><p>从图中看，这段网络包含了A、B、C这三段的流程。A就是虚拟机<code>test0</code>的虚拟网卡，这块没什么好讲的。和它相连的B倒是值得好好讲一下。B是一个<code>TAP</code>设备，通常是以<code>tap</code>开头的一段名称，它挂载在<code>Linux Bridge qbr</code>上面。那什么又是<code>TAP</code>设备呢？<a href="http://www.ibm.com/developerworks/cn/linux/l-virtual-networking/" target="_blank" rel="external">Linux 中的虚拟网络</a>中给出了这样的解释：</p>
+<blockquote>
+<p>TAP是一个虚拟网络内核驱动，该驱动实现Ethernet设备，并在Ethernet框架级别操作。TAP驱动提供了Ethernet “tap”，访问Ethernet框架能够通过它进行通信。</p>
+</blockquote>
+<p>总而言之，<code>TAP</code>设备其实就是一个Linux内核虚拟化出来的一个网络接口。OK，我们明白了<code>TAP</code>设备了，如果还是不明白可以查看<code>TAP</code>的具体<a href="http://vtun.sourceforge.net/tun/faq.html" target="_blank" rel="external">定义</a>。接下来就是<code>qbr</code>，这之前就说了，是一个<code>Linux Bridge</code>，很是奇怪，我们在这个架构中，使用的<code>OpenvSwitch</code>实现虚拟交换设备的，为什么会出现<code>Linux Bridge</code>呢？<a href="http://docs.openstack.org/network-admin/admin/content/under_the_hood_openvswitch.html" target="_blank" rel="external">OpenStack Networking Administration Guide</a>给出了这样的解释：</p>
+<blockquote>
+<p>Ideally, the TAP device vnet0 would be connected directly to the integration bridge, br-int. Unfortunately, this isn’t possible because of how OpenStack security groups are currently implemented. OpenStack uses iptables rules on the TAP devices such as vnet0 to implement security groups, and Open vSwitch is not compatible with iptables rules that are applied directly on TAP devices that are connected to an Open vSwitch port. </p>
+</blockquote>
+<p>其实就是说，<code>OpenvSwitch</code>不支持现在的<code>OpenStack</code>的实现方式，因为<code>OpenStack</code>是把<code>iptables</code>规则丢在<code>TAP</code>设备中，以此实现了安全组功能。没办法，所以用了一个折衷的方式，在中间加一层，用<code>Linux Bridge</code>来实现吧，这样，就莫名其妙了多了一个<code>qbr</code>网桥。在<code>qbr</code>上面还存在另一个设备C，这也是一个<code>TAP</code>设备。C通常以<code>qvb</code>开头，C和<code>br-int</code>上的D连接在一起，形成一个连接通道，使得<code>qbr</code>和<code>br-int</code>之间顺畅通信。</p>
+<h2 id="计算节点：集成网桥-br-int-的网络"><a href="#计算节点：集成网桥-br-int-的网络" class="headerlink" title="计算节点：集成网桥(br-int)的网络"></a>计算节点：集成网桥(br-int)的网络</h2><p>刚才说到D(这也是一个<code>TAP</code>设备)在br-int上面，现在轮到<code>br-int</code>出场了，<code>br-int</code>是由<code>OpenvSwitch</code>虚拟化出来的网桥，但事实上它已经充当了一个虚拟交换机的功能了。<code>br-int</code>的主要职责就是把它所在的计算节点上的VM都连接到它这个虚拟交换机上面，然后利用下面要介绍的<code>br-tun</code>的穿透功能，实现了不同计算节点上的VM连接在同一个逻辑上的虚拟交换机上面的功能。这个似乎有点拗口，其实就是在管理员看来，所有的VM都是连接在一个虚拟交换机上面的，但事实上这些VM又都是分布在不同的物理主机上面。OK，回到D上面，D通常以qvo开头。在上面还有另一个端口E，它总是以<code>patch-tun</code>的形式出现，从字面就可以看出它是用来连接<code>br-tun</code>的。</p>
+<h2 id="计算节点：通道网桥-br-tun-的网络"><a href="#计算节点：通道网桥-br-tun-的网络" class="headerlink" title="计算节点：通道网桥(br-tun)的网络"></a>计算节点：通道网桥(br-tun)的网络</h2><p><code>br-tun</code>在上面已经提及了，这同样是<code>OpenvSwitch</code>虚拟化出来的网桥，但是它不是用来充当虚拟交换机的，它的存在只是用来充当一个通道层，通过它上面的设备G与其他物理机上的<code>br-tun</code>通信，构成一个统一的通信层。这样的话，网络节点和计算节点、计算节点和计算节点这样就会点对点的形成一个以<code>GRE</code>为基础的通信网络，互相之间通过这个网络进行大量的数据交换。这样，网络节点和计算节点之间的通信就此打通了。而图中的G、H正是描画这一通信。</p>
+<h2 id="网络节点：通道网桥（br-tun）的网络"><a href="#网络节点：通道网桥（br-tun）的网络" class="headerlink" title="网络节点：通道网桥（br-tun）的网络"></a>网络节点：通道网桥（br-tun）的网络</h2><p>正如前面所说，网络节点上也是存在一个<code>br-tun</code>，它的作用同计算节点上的<code>br-tun</code>如出一辙，都是为了在整个系统中构建一个统一的通信层而存在的。所以，这一部分的网络同计算节点上的网络的功能是一致的，因此，也就没有必要多说了。</p>
+<h2 id="网络节点：集成网桥（br-int）的网络"><a href="#网络节点：集成网桥（br-int）的网络" class="headerlink" title="网络节点：集成网桥（br-int）的网络"></a>网络节点：集成网桥（br-int）的网络</h2><p>网络节点上的<code>br-int</code>也是起了交换机的作用，它通过I、J与<code>br-tun</code>连接在一起。最终的要的是，在这个虚拟交换机上，还有其他两个重要的<code>tap</code>设备M、O，它们分别同N、P相连，而N、P作为<code>tap</code>设备则是分别归属两个<code>namespace</code>router和dhcp，没错，正如这两个<code>namespace</code>的名称所示，它们承担的就是router和dhcp的功能。这个router是由<code>l3-agent</code>根据网络管理的需要而创建的，然后，该router就与特定一个子网绑定到一起，管理这个子网的路由功能。router实现路由功能，则是依靠在该<code>namespace</code>中的<code>iptables</code>实现的。dhcp则也是<code>l3-agent</code>根据需要针对特定的子网创建的，在这个<code>namespace</code>中，<code>l3-agent</code>会启动一个<code>dnsmasq</code>的进程，由它来实际掌管该子网的dhcp功能。由于这个两个<code>namespace</code>都是针对特定的子网创建的，因而在现有的<code>OpenStack</code>系统中，它们常常是成对出现的。</p>
+<h2 id="网络节点：外部网桥（br-ex）的网络"><a href="#网络节点：外部网桥（br-ex）的网络" class="headerlink" title="网络节点：外部网桥（br-ex）的网络"></a>网络节点：外部网桥（br-ex）的网络</h2><p>当数据从router中路由出来后，就会通过L、K传送到<code>br-ex</code>这个虚拟网桥上，而<code>br-ex</code>实际上是混杂模式加载在物理网卡上，实时接收着网络上的数据包。至此，我们的计算节点上的VM就可以与外部的网络进行自由的通信了。当然，前提是我们要给这个VM已经分配了<code>float-ip</code>。</p>
+<p>关于OpenStack Neutron的分析大致描述这些吧，后续的话会详细的写一些文章来详细介绍整个的详细流程和相关的实现方式。</p>
+
+      
+    </div>
+    <footer>
+      
+        
+  
+  <div class="categories">
+    <a href="/categories/OpenStack/">OpenStack</a>
+  </div>
+
+        
+  
+  <div class="tags">
+    <a href="/tags/OpenStack/">OpenStack</a>, <a href="/tags/Neutron/">Neutron</a>
+  </div>
+
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+<section id="comment">
+  <h1 class="title">留言</h1>
+  
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+  
+</section>
+
+</div></div>
+    <aside id="sidebar" class="alignright">
+  <div class="search">
+  <form action="//google.com/search" method="get" accept-charset="utf-8">
+    <input type="search" name="q" results="0" placeholder="搜索">
+    <input type="hidden" name="q" value="site:xidianpanpei.github.io">
+  </form>
+</div>
+
+  
+<div class="widget tag">
+  <h3 class="title">最新文章</h3>
+  <ul class="entry">
+    
+      <li>
+        <a href="/2015/04/30/build-windows-work-environment/">Windows终端环境搭建</a>
+      </li>
+    
+      <li>
+        <a href="/2014/10/08/baidu-interview/">百度系统工程师初面之经历</a>
+      </li>
+    
+      <li>
+        <a href="/2014/08/12/ceilometer-architecture-analyse/">Ceilometer架构简要分析</a>
+      </li>
+    
+      <li>
+        <a href="/2014/05/22/openstack-neutron-analyse/">OpenStack Neutron解析</a>
+      </li>
+    
+      <li>
+        <a href="/2014/03/28/design-patterns-factory-mode/">设计模式之工厂模式</a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+<div class="widget tagcloud">
+  <h3 class="title">标签云</h3>
+  <div class="entry">
+    <a href="/tags/360WiFi/" style="font-size: 10px;">360WiFi</a> <a href="/tags/ACM/" style="font-size: 12.5px;">ACM</a> <a href="/tags/Babun/" style="font-size: 10px;">Babun</a> <a href="/tags/Ceilometer/" style="font-size: 12.5px;">Ceilometer</a> <a href="/tags/C语言/" style="font-size: 10px;">C语言</a> <a href="/tags/ElementaryOS/" style="font-size: 10px;">ElementaryOS</a> <a href="/tags/Gmail/" style="font-size: 10px;">Gmail</a> <a href="/tags/Google-Code/" style="font-size: 10px;">Google Code</a> <a href="/tags/JUnit/" style="font-size: 10px;">JUnit</a> <a href="/tags/LaTeX/" style="font-size: 12.5px;">LaTeX</a> <a href="/tags/Neutron/" style="font-size: 12.5px;">Neutron</a> <a href="/tags/OpenStack/" style="font-size: 17.5px;">OpenStack</a> <a href="/tags/PHP/" style="font-size: 10px;">PHP</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/Resume/" style="font-size: 10px;">Resume</a> <a href="/tags/TortoiseSVN/" style="font-size: 10px;">TortoiseSVN</a> <a href="/tags/Ubuntu/" style="font-size: 10px;">Ubuntu</a> <a href="/tags/Windows/" style="font-size: 10px;">Windows</a> <a href="/tags/Yahoo/" style="font-size: 10px;">Yahoo</a> <a href="/tags/Yii/" style="font-size: 10px;">Yii</a> <a href="/tags/commons-logging/" style="font-size: 10px;">commons-logging</a> <a href="/tags/freegate/" style="font-size: 10px;">freegate</a> <a href="/tags/git/" style="font-size: 10px;">git</a> <a href="/tags/vbs/" style="font-size: 10px;">vbs</a> <a href="/tags/代码管理/" style="font-size: 10px;">代码管理</a> <a href="/tags/写作/" style="font-size: 10px;">写作</a> <a href="/tags/博客/" style="font-size: 12.5px;">博客</a> <a href="/tags/堆排序/" style="font-size: 10px;">堆排序</a> <a href="/tags/安庆/" style="font-size: 10px;">安庆</a> <a href="/tags/密码/" style="font-size: 10px;">密码</a> <a href="/tags/工作/" style="font-size: 10px;">工作</a> <a href="/tags/工作环境/" style="font-size: 10px;">工作环境</a> <a href="/tags/工厂模式/" style="font-size: 10px;">工厂模式</a> <a href="/tags/开源/" style="font-size: 15px;">开源</a> <a href="/tags/快速排序/" style="font-size: 10px;">快速排序</a> <a href="/tags/抽象工厂模式/" style="font-size: 10px;">抽象工厂模式</a> <a href="/tags/指针/" style="font-size: 10px;">指针</a> <a href="/tags/机试/" style="font-size: 10px;">机试</a> <a href="/tags/测试/" style="font-size: 10px;">测试</a> <a href="/tags/浙大/" style="font-size: 10px;">浙大</a> <a href="/tags/源码分析/" style="font-size: 10px;">源码分析</a> <a href="/tags/爬虫/" style="font-size: 10px;">爬虫</a> <a href="/tags/生活/" style="font-size: 12.5px;">生活</a> <a href="/tags/登录/" style="font-size: 10px;">登录</a> <a href="/tags/百度/" style="font-size: 10px;">百度</a> <a href="/tags/碎碎念/" style="font-size: 20px;">碎碎念</a> <a href="/tags/简历/" style="font-size: 10px;">简历</a> <a href="/tags/算法/" style="font-size: 15px;">算法</a> <a href="/tags/终端/" style="font-size: 10px;">终端</a> <a href="/tags/翻墙/" style="font-size: 10px;">翻墙</a> <a href="/tags/论文/" style="font-size: 10px;">论文</a> <a href="/tags/设计模式/" style="font-size: 12.5px;">设计模式</a> <a href="/tags/邮箱/" style="font-size: 10px;">邮箱</a> <a href="/tags/面试/" style="font-size: 10px;">面试</a> <a href="/tags/骑行/" style="font-size: 10px;">骑行</a>
+  </div>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">分类</h3>
+  <ul class="entry">
+  
+    <li><a href="/categories/C-C/">C/C++</a><small>1</small></li>
+  
+    <li><a href="/categories/Git/">Git</a><small>1</small></li>
+  
+    <li><a href="/categories/LaTeX/">LaTeX</a><small>2</small></li>
+  
+    <li><a href="/categories/OpenStack/">OpenStack</a><small>4</small></li>
+  
+    <li><a href="/categories/PHP/">PHP</a><small>1</small></li>
+  
+    <li><a href="/categories/Python/">Python</a><small>1</small></li>
+  
+    <li><a href="/categories/博客/">博客</a><small>1</small></li>
+  
+    <li><a href="/categories/学习/">学习</a><small>7</small></li>
+  
+    <li><a href="/categories/开源/">开源</a><small>1</small></li>
+  
+    <li><a href="/categories/杂项/">杂项</a><small>7</small></li>
+  
+    <li><a href="/categories/生活/">生活</a><small>4</small></li>
+  
+    <li><a href="/categories/算法/">算法</a><small>2</small></li>
+  
+    <li><a href="/categories/设计模式/">设计模式</a><small>2</small></li>
+  
+    <li><a href="/categories/评论/">评论</a><small>1</small></li>
+  
+    <li><a href="/categories/面试/">面试</a><small>1</small></li>
+  
+  </ul>
+</div>
+
+
+  <div class="widget tag">
+<h3 class="title">友情链接</h3>
+<ul class="entry">
+<li><a href="http://wtz123.github.io/" title="花开只一季，一季开一年的男人">Tony's Blog</a></li>
+</ul>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2017 crAzyli0n
+  
+</div>
+<div class="clearfix"></div></footer>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+<script type="text/javascript">
+var disqus_shortname = 'crazyli0nsblog';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+</body>
+</html>

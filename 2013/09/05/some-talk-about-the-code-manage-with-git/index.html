@@ -1,0 +1,248 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>使用Git管理开发代码的一点理解 | crAzyli0n&#39;s blog</title>
+  <meta name="author" content="crAzyli0n">
+  
+  <meta name="description" content="crAzyli0n&#39;s blog">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="使用Git管理开发代码的一点理解"/>
+  <meta property="og:site_name" content="crAzyli0n&#39;s blog"/>
+
+  
+    <meta property="og:image" content="undefined"/>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="crAzyli0n&#39;s blog" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+
+</head>
+
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">crAzyli0n&#39;s blog</a></h1>
+  <h2><a href="/">记录前进中的点点滴滴</a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+      <li><a href="/about">About</a></li>
+    
+    <li> <a href="https://github.com/xidianpanpei">GitHub</a> </li>
+    <li> <a href="/atom.xml">RSS</a> </li>
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div></header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft"><div id="wrapper"><article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2013-09-05T21:18:00.000Z"><a href="/2013/09/05/some-talk-about-the-code-manage-with-git/">2013-09-05</a></time>
+      
+      
+  
+    <h1 class="title">使用Git管理开发代码的一点理解</h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p>最近也算是把Git相关的知识看了不少了，虽然对于Git的有些命令还是没怎么熟记，对一些更加高级的命令也是没有实践过，但慢慢理解了Git的相关的flow之后，不自然就和以前用过的SVN进行了一些对比，发现Git相对于SVN来说的确有些优势。</p>
+<p>在之前的公司里，项目组一直是用SVN来做相关的版本管理的，当然，我这种底层的开发小兵也不需要用到SVN的版本控制层面的功能的。我所能使用的，也就是提交代码，查看提交日志等一些一线开发人员常用的功能而已。当初记得，项目组的SE经常提出新的需求，同时，测试也在不停提出bug修改要求，所以总是把代码一份一份的拷贝到不同的文件夹中，然后对于不同文件夹的代码进行不同的代码功能修复或者开发，最后合并到最初的SVN源码文件夹中。不得不说，这是一种非常原始的方式，但是这是我当时能够最有效的代码控制的方式了，因为经过自己的实践证明，这种方式可以合理规避掉各种的代码覆盖冲突等问题。至今还对于用BeyondCompare一行行比对代码的事记忆犹新啊。</p>
+<a id="more"></a>
+<p>然而，随着了解Git的相关的一些知识后，蓦然发现，原来我使用过的那种原始代码控制方式，已经在Git中完美的实现了(唯一可能不满意就是Git中diff工具没有BeyondCompare那么强大吧，当年一直对于代码冲突导致的文件内容混乱非常反感)。看了不少的关于Git分支管理的布道文章后，加上自己的那套原始的代码控制方式，从而也对使用Git有效管理控制代码有了些自己的见解。</p>
+<p><img src="/img/2013/09/05/git-flow.png" alt=""></p>
+<p>在我看来，我们clone完项目组的代码之后，此时的分支为master，那么我们应该一直保持此分支的干净整洁，不要在master分支上直接进行开发。我们应该在开始一项新的主功能的开发时，从master分支分离出一直develop分支，日常的开发应该在此分支之上。同时，根据的以后的附加功能的需要，我们应该考虑是从master分支分离分支开发还是从develop分支分离分支开发，对于bug的修复同样需要如此考虑。当我们开发完成该项主功能后，应该清理干净从develop分支上分离的各个分支，然后保证develop分支干净后，将其合入最新的master分支，最后将最新的master分支push到远程仓库中。另外，在整个开发过程中，对于master分支我们时常保持其最新程度，要时常更新master分支上的代码，这样可以便于我们同其他开发者的同步，也减小了覆盖别人代码的几率。</p>
+
+      
+    </div>
+    <footer>
+      
+        
+  
+  <div class="categories">
+    <a href="/categories/Git/">Git</a>
+  </div>
+
+        
+  
+  <div class="tags">
+    <a href="/tags/git/">git</a>, <a href="/tags/代码管理/">代码管理</a>
+  </div>
+
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+<section id="comment">
+  <h1 class="title">留言</h1>
+  
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+  
+</section>
+
+</div></div>
+    <aside id="sidebar" class="alignright">
+  <div class="search">
+  <form action="//google.com/search" method="get" accept-charset="utf-8">
+    <input type="search" name="q" results="0" placeholder="搜索">
+    <input type="hidden" name="q" value="site:xidianpanpei.github.io">
+  </form>
+</div>
+
+  
+<div class="widget tag">
+  <h3 class="title">最新文章</h3>
+  <ul class="entry">
+    
+      <li>
+        <a href="/2015/04/30/build-windows-work-environment/">Windows终端环境搭建</a>
+      </li>
+    
+      <li>
+        <a href="/2014/10/08/baidu-interview/">百度系统工程师初面之经历</a>
+      </li>
+    
+      <li>
+        <a href="/2014/08/12/ceilometer-architecture-analyse/">Ceilometer架构简要分析</a>
+      </li>
+    
+      <li>
+        <a href="/2014/05/22/openstack-neutron-analyse/">OpenStack Neutron解析</a>
+      </li>
+    
+      <li>
+        <a href="/2014/03/28/design-patterns-factory-mode/">设计模式之工厂模式</a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+<div class="widget tagcloud">
+  <h3 class="title">标签云</h3>
+  <div class="entry">
+    <a href="/tags/360WiFi/" style="font-size: 10px;">360WiFi</a> <a href="/tags/ACM/" style="font-size: 12.5px;">ACM</a> <a href="/tags/Babun/" style="font-size: 10px;">Babun</a> <a href="/tags/Ceilometer/" style="font-size: 12.5px;">Ceilometer</a> <a href="/tags/C语言/" style="font-size: 10px;">C语言</a> <a href="/tags/ElementaryOS/" style="font-size: 10px;">ElementaryOS</a> <a href="/tags/Gmail/" style="font-size: 10px;">Gmail</a> <a href="/tags/Google-Code/" style="font-size: 10px;">Google Code</a> <a href="/tags/JUnit/" style="font-size: 10px;">JUnit</a> <a href="/tags/LaTeX/" style="font-size: 12.5px;">LaTeX</a> <a href="/tags/Neutron/" style="font-size: 12.5px;">Neutron</a> <a href="/tags/OpenStack/" style="font-size: 17.5px;">OpenStack</a> <a href="/tags/PHP/" style="font-size: 10px;">PHP</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/Resume/" style="font-size: 10px;">Resume</a> <a href="/tags/TortoiseSVN/" style="font-size: 10px;">TortoiseSVN</a> <a href="/tags/Ubuntu/" style="font-size: 10px;">Ubuntu</a> <a href="/tags/Windows/" style="font-size: 10px;">Windows</a> <a href="/tags/Yahoo/" style="font-size: 10px;">Yahoo</a> <a href="/tags/Yii/" style="font-size: 10px;">Yii</a> <a href="/tags/commons-logging/" style="font-size: 10px;">commons-logging</a> <a href="/tags/freegate/" style="font-size: 10px;">freegate</a> <a href="/tags/git/" style="font-size: 10px;">git</a> <a href="/tags/vbs/" style="font-size: 10px;">vbs</a> <a href="/tags/代码管理/" style="font-size: 10px;">代码管理</a> <a href="/tags/写作/" style="font-size: 10px;">写作</a> <a href="/tags/博客/" style="font-size: 12.5px;">博客</a> <a href="/tags/堆排序/" style="font-size: 10px;">堆排序</a> <a href="/tags/安庆/" style="font-size: 10px;">安庆</a> <a href="/tags/密码/" style="font-size: 10px;">密码</a> <a href="/tags/工作/" style="font-size: 10px;">工作</a> <a href="/tags/工作环境/" style="font-size: 10px;">工作环境</a> <a href="/tags/工厂模式/" style="font-size: 10px;">工厂模式</a> <a href="/tags/开源/" style="font-size: 15px;">开源</a> <a href="/tags/快速排序/" style="font-size: 10px;">快速排序</a> <a href="/tags/抽象工厂模式/" style="font-size: 10px;">抽象工厂模式</a> <a href="/tags/指针/" style="font-size: 10px;">指针</a> <a href="/tags/机试/" style="font-size: 10px;">机试</a> <a href="/tags/测试/" style="font-size: 10px;">测试</a> <a href="/tags/浙大/" style="font-size: 10px;">浙大</a> <a href="/tags/源码分析/" style="font-size: 10px;">源码分析</a> <a href="/tags/爬虫/" style="font-size: 10px;">爬虫</a> <a href="/tags/生活/" style="font-size: 12.5px;">生活</a> <a href="/tags/登录/" style="font-size: 10px;">登录</a> <a href="/tags/百度/" style="font-size: 10px;">百度</a> <a href="/tags/碎碎念/" style="font-size: 20px;">碎碎念</a> <a href="/tags/简历/" style="font-size: 10px;">简历</a> <a href="/tags/算法/" style="font-size: 15px;">算法</a> <a href="/tags/终端/" style="font-size: 10px;">终端</a> <a href="/tags/翻墙/" style="font-size: 10px;">翻墙</a> <a href="/tags/论文/" style="font-size: 10px;">论文</a> <a href="/tags/设计模式/" style="font-size: 12.5px;">设计模式</a> <a href="/tags/邮箱/" style="font-size: 10px;">邮箱</a> <a href="/tags/面试/" style="font-size: 10px;">面试</a> <a href="/tags/骑行/" style="font-size: 10px;">骑行</a>
+  </div>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">分类</h3>
+  <ul class="entry">
+  
+    <li><a href="/categories/C-C/">C/C++</a><small>1</small></li>
+  
+    <li><a href="/categories/Git/">Git</a><small>1</small></li>
+  
+    <li><a href="/categories/LaTeX/">LaTeX</a><small>2</small></li>
+  
+    <li><a href="/categories/OpenStack/">OpenStack</a><small>4</small></li>
+  
+    <li><a href="/categories/PHP/">PHP</a><small>1</small></li>
+  
+    <li><a href="/categories/Python/">Python</a><small>1</small></li>
+  
+    <li><a href="/categories/博客/">博客</a><small>1</small></li>
+  
+    <li><a href="/categories/学习/">学习</a><small>7</small></li>
+  
+    <li><a href="/categories/开源/">开源</a><small>1</small></li>
+  
+    <li><a href="/categories/杂项/">杂项</a><small>7</small></li>
+  
+    <li><a href="/categories/生活/">生活</a><small>4</small></li>
+  
+    <li><a href="/categories/算法/">算法</a><small>2</small></li>
+  
+    <li><a href="/categories/设计模式/">设计模式</a><small>2</small></li>
+  
+    <li><a href="/categories/评论/">评论</a><small>1</small></li>
+  
+    <li><a href="/categories/面试/">面试</a><small>1</small></li>
+  
+  </ul>
+</div>
+
+
+  <div class="widget tag">
+<h3 class="title">友情链接</h3>
+<ul class="entry">
+<li><a href="http://wtz123.github.io/" title="花开只一季，一季开一年的男人">Tony's Blog</a></li>
+</ul>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2017 crAzyli0n
+  
+</div>
+<div class="clearfix"></div></footer>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+<script type="text/javascript">
+var disqus_shortname = 'crazyli0nsblog';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+</body>
+</html>

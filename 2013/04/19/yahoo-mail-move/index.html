@@ -1,0 +1,256 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>关于yahoo.com.cn邮箱导入Gmail邮箱验证异常的机制解析及解决办法 | crAzyli0n&#39;s blog</title>
+  <meta name="author" content="crAzyli0n">
+  
+  <meta name="description" content="crAzyli0n&#39;s blog">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="关于yahoo.com.cn邮箱导入Gmail邮箱验证异常的机制解析及解决办法"/>
+  <meta property="og:site_name" content="crAzyli0n&#39;s blog"/>
+
+  
+    <meta property="og:image" content="undefined"/>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="crAzyli0n&#39;s blog" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+
+</head>
+
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">crAzyli0n&#39;s blog</a></h1>
+  <h2><a href="/">记录前进中的点点滴滴</a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+      <li><a href="/about">About</a></li>
+    
+    <li> <a href="https://github.com/xidianpanpei">GitHub</a> </li>
+    <li> <a href="/atom.xml">RSS</a> </li>
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div></header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft"><div id="wrapper"><article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2013-04-19T12:12:00.000Z"><a href="/2013/04/19/yahoo-mail-move/">2013-04-19</a></time>
+      
+      
+  
+    <h1 class="title">关于yahoo.com.cn邮箱导入Gmail邮箱验证异常的机制解析及解决办法</h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p>一大早起来，突然就发现雅虎中国的邮箱要关停了，阿里巴巴居然都发了最后通牒了。吐槽一下，国际互联网企业来天朝之后，似乎就没有一个活的很好的，ebay被淘宝赶出了天朝，Google被度娘赶走了，Facebook之流，根本就过不了天朝的长城。虽说Yahoo中国很早就被阿里收购了，可一直也不受什么待见。如今，首先拿邮箱开刀了，Yahoo中国终于也开始了从天朝消失的序幕了。</p>
+<p>一直用Yahoo的邮箱好几年了，前前后后虽然也注册遍了市场主流的邮箱，但还是一直主要在用Yahoo的邮箱，如今突然宣布停止服务了，不得不说，真的很坑爹啊。花了一上午的时间，把以前能记起来的用yahoo.com.cn注册的网站的邮箱都改了一遍，纠结啊，更纠结的是，居然还有些网站把邮箱作为了认证ID，改不了。剩下的那些想不起来的网站，只能以后慢慢改了。</p>
+<p>言归正传，Yahoo邮箱的那些信件总不能丢了吧，于是打算导入到Gmail邮箱（那些支持POP功能的邮箱都是可以导入Gmail的，Yahoo邮箱以前似乎要自己特别设置的，现在好像阿里为了迁移，开放了POP功能了），可是其中就是遇到了麻烦，一直提示密码无法验证。开始以为是自己把密码输错了，可是后来试了n多次，还是提示同样的错误。</p>
+<a id="more"></a>
+<p>网上逛了一圈，还是没找到什么有价值的解决方案。倒是发现Gmail的这个导入功能采用的是POP获取的技术，其实在Outlook、ThunderBird、Foxmail这些邮件客户端中，用的就是这种方式，既然如此，就明白了为什么一直提示密码错误了。</p>
+<p>Yahoo邮箱一直用了一个很奇怪的域名，它的POP服务器是：<code>pop.mail.yahoo.com.cn</code>，SMTP服务器是：<code>smtp.mail.yahoo.com.cn</code>，这个和其他邮箱是有区别的，例如：网易126邮箱，POP服务器是：<code>pop.126.com</code>，SMTP服务器是：<code>smtp.126.com</code>，相信大家应该明白这其中的区别了，主流邮箱都是用户+@+服务器域名，如网易126邮箱为<code>example@126.com</code>，而Yahoo邮箱的标准格式也是：<code>example@yahoo.com.cn</code>，但它的服务器域名却是<code>mail.yahoo.com.cn</code>，因此，就有了如下猜想：只要Gmail想用POP方式去<code>yahoo.com.cn</code>上收取邮件，可是它却用<code>pop.yahoo.com.cn</code>的域名去获取，可是这个服务器到底是不是存在，天知道，就算存在，也不存在我们的邮箱啊，所以一直提示密码验证错误。</p>
+<p>既然已经知道错误的原因所在，于是，如果我们的邮箱是<code>username@yahoo.com.cn</code>，我们就在导入过程中填入<code>username@mail.yahoo.com.cn</code>，如图示：</p>
+<p><img src="/img/2013/04/19/yahoo-move-step1.png" alt="" title="步骤一"></p>
+<p>试了果然有效果了，没有再提示验证错误了，直接进入下图：</p>
+<p><img src="/img/2013/04/19/yahoo-move-step2.png" alt="" title="步骤二"></p>
+<p>输入咱的邮箱密码就有了：</p>
+<p><img src="/img/2013/04/19/yahoo-move-step3.png" alt="" title="步骤三"></p>
+<p>离成功就一步之遥了，上图中还是有个错误，就是那个POP server：<code>mail.mail.yahoo.com.cn</code>，我们将其改成真正的POP server：<code>pop.mail.yahoo.com.cn</code>，然后就一路continue吧。</p>
+<p>OK，任务就此完成，邮件导入成功。</p>
+
+      
+    </div>
+    <footer>
+      
+        
+  
+  <div class="categories">
+    <a href="/categories/杂项/">杂项</a>
+  </div>
+
+        
+  
+  <div class="tags">
+    <a href="/tags/碎碎念/">碎碎念</a>, <a href="/tags/Gmail/">Gmail</a>, <a href="/tags/Yahoo/">Yahoo</a>, <a href="/tags/邮箱/">邮箱</a>
+  </div>
+
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+<section id="comment">
+  <h1 class="title">留言</h1>
+  
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+  
+</section>
+
+</div></div>
+    <aside id="sidebar" class="alignright">
+  <div class="search">
+  <form action="//google.com/search" method="get" accept-charset="utf-8">
+    <input type="search" name="q" results="0" placeholder="搜索">
+    <input type="hidden" name="q" value="site:xidianpanpei.github.io">
+  </form>
+</div>
+
+  
+<div class="widget tag">
+  <h3 class="title">最新文章</h3>
+  <ul class="entry">
+    
+      <li>
+        <a href="/2015/04/30/build-windows-work-environment/">Windows终端环境搭建</a>
+      </li>
+    
+      <li>
+        <a href="/2014/10/08/baidu-interview/">百度系统工程师初面之经历</a>
+      </li>
+    
+      <li>
+        <a href="/2014/08/12/ceilometer-architecture-analyse/">Ceilometer架构简要分析</a>
+      </li>
+    
+      <li>
+        <a href="/2014/05/22/openstack-neutron-analyse/">OpenStack Neutron解析</a>
+      </li>
+    
+      <li>
+        <a href="/2014/03/28/design-patterns-factory-mode/">设计模式之工厂模式</a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+<div class="widget tagcloud">
+  <h3 class="title">标签云</h3>
+  <div class="entry">
+    <a href="/tags/360WiFi/" style="font-size: 10px;">360WiFi</a> <a href="/tags/ACM/" style="font-size: 12.5px;">ACM</a> <a href="/tags/Babun/" style="font-size: 10px;">Babun</a> <a href="/tags/Ceilometer/" style="font-size: 12.5px;">Ceilometer</a> <a href="/tags/C语言/" style="font-size: 10px;">C语言</a> <a href="/tags/ElementaryOS/" style="font-size: 10px;">ElementaryOS</a> <a href="/tags/Gmail/" style="font-size: 10px;">Gmail</a> <a href="/tags/Google-Code/" style="font-size: 10px;">Google Code</a> <a href="/tags/JUnit/" style="font-size: 10px;">JUnit</a> <a href="/tags/LaTeX/" style="font-size: 12.5px;">LaTeX</a> <a href="/tags/Neutron/" style="font-size: 12.5px;">Neutron</a> <a href="/tags/OpenStack/" style="font-size: 17.5px;">OpenStack</a> <a href="/tags/PHP/" style="font-size: 10px;">PHP</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/Resume/" style="font-size: 10px;">Resume</a> <a href="/tags/TortoiseSVN/" style="font-size: 10px;">TortoiseSVN</a> <a href="/tags/Ubuntu/" style="font-size: 10px;">Ubuntu</a> <a href="/tags/Windows/" style="font-size: 10px;">Windows</a> <a href="/tags/Yahoo/" style="font-size: 10px;">Yahoo</a> <a href="/tags/Yii/" style="font-size: 10px;">Yii</a> <a href="/tags/commons-logging/" style="font-size: 10px;">commons-logging</a> <a href="/tags/freegate/" style="font-size: 10px;">freegate</a> <a href="/tags/git/" style="font-size: 10px;">git</a> <a href="/tags/vbs/" style="font-size: 10px;">vbs</a> <a href="/tags/代码管理/" style="font-size: 10px;">代码管理</a> <a href="/tags/写作/" style="font-size: 10px;">写作</a> <a href="/tags/博客/" style="font-size: 12.5px;">博客</a> <a href="/tags/堆排序/" style="font-size: 10px;">堆排序</a> <a href="/tags/安庆/" style="font-size: 10px;">安庆</a> <a href="/tags/密码/" style="font-size: 10px;">密码</a> <a href="/tags/工作/" style="font-size: 10px;">工作</a> <a href="/tags/工作环境/" style="font-size: 10px;">工作环境</a> <a href="/tags/工厂模式/" style="font-size: 10px;">工厂模式</a> <a href="/tags/开源/" style="font-size: 15px;">开源</a> <a href="/tags/快速排序/" style="font-size: 10px;">快速排序</a> <a href="/tags/抽象工厂模式/" style="font-size: 10px;">抽象工厂模式</a> <a href="/tags/指针/" style="font-size: 10px;">指针</a> <a href="/tags/机试/" style="font-size: 10px;">机试</a> <a href="/tags/测试/" style="font-size: 10px;">测试</a> <a href="/tags/浙大/" style="font-size: 10px;">浙大</a> <a href="/tags/源码分析/" style="font-size: 10px;">源码分析</a> <a href="/tags/爬虫/" style="font-size: 10px;">爬虫</a> <a href="/tags/生活/" style="font-size: 12.5px;">生活</a> <a href="/tags/登录/" style="font-size: 10px;">登录</a> <a href="/tags/百度/" style="font-size: 10px;">百度</a> <a href="/tags/碎碎念/" style="font-size: 20px;">碎碎念</a> <a href="/tags/简历/" style="font-size: 10px;">简历</a> <a href="/tags/算法/" style="font-size: 15px;">算法</a> <a href="/tags/终端/" style="font-size: 10px;">终端</a> <a href="/tags/翻墙/" style="font-size: 10px;">翻墙</a> <a href="/tags/论文/" style="font-size: 10px;">论文</a> <a href="/tags/设计模式/" style="font-size: 12.5px;">设计模式</a> <a href="/tags/邮箱/" style="font-size: 10px;">邮箱</a> <a href="/tags/面试/" style="font-size: 10px;">面试</a> <a href="/tags/骑行/" style="font-size: 10px;">骑行</a>
+  </div>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">分类</h3>
+  <ul class="entry">
+  
+    <li><a href="/categories/C-C/">C/C++</a><small>1</small></li>
+  
+    <li><a href="/categories/Git/">Git</a><small>1</small></li>
+  
+    <li><a href="/categories/LaTeX/">LaTeX</a><small>2</small></li>
+  
+    <li><a href="/categories/OpenStack/">OpenStack</a><small>4</small></li>
+  
+    <li><a href="/categories/PHP/">PHP</a><small>1</small></li>
+  
+    <li><a href="/categories/Python/">Python</a><small>1</small></li>
+  
+    <li><a href="/categories/博客/">博客</a><small>1</small></li>
+  
+    <li><a href="/categories/学习/">学习</a><small>7</small></li>
+  
+    <li><a href="/categories/开源/">开源</a><small>1</small></li>
+  
+    <li><a href="/categories/杂项/">杂项</a><small>7</small></li>
+  
+    <li><a href="/categories/生活/">生活</a><small>4</small></li>
+  
+    <li><a href="/categories/算法/">算法</a><small>2</small></li>
+  
+    <li><a href="/categories/设计模式/">设计模式</a><small>2</small></li>
+  
+    <li><a href="/categories/评论/">评论</a><small>1</small></li>
+  
+    <li><a href="/categories/面试/">面试</a><small>1</small></li>
+  
+  </ul>
+</div>
+
+
+  <div class="widget tag">
+<h3 class="title">友情链接</h3>
+<ul class="entry">
+<li><a href="http://wtz123.github.io/" title="花开只一季，一季开一年的男人">Tony's Blog</a></li>
+</ul>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2017 crAzyli0n
+  
+</div>
+<div class="clearfix"></div></footer>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+<script type="text/javascript">
+var disqus_shortname = 'crazyli0nsblog';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+</body>
+</html>

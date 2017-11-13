@@ -1,0 +1,304 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>JUnit-3.8.1源码分析 | crAzyli0n&#39;s blog</title>
+  <meta name="author" content="crAzyli0n">
+  
+  <meta name="description" content="crAzyli0n&#39;s blog">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="JUnit-3.8.1源码分析"/>
+  <meta property="og:site_name" content="crAzyli0n&#39;s blog"/>
+
+  
+    <meta property="og:image" content="undefined"/>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="crAzyli0n&#39;s blog" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+
+</head>
+
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">crAzyli0n&#39;s blog</a></h1>
+  <h2><a href="/">记录前进中的点点滴滴</a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+      <li><a href="/about">About</a></li>
+    
+    <li> <a href="https://github.com/xidianpanpei">GitHub</a> </li>
+    <li> <a href="/atom.xml">RSS</a> </li>
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div></header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft"><div id="wrapper"><article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2013-11-01T10:02:00.000Z"><a href="/2013/11/01/analyze-junit-source-code/">2013-11-01</a></time>
+      
+      
+  
+    <h1 class="title">JUnit-3.8.1源码分析</h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p><img src="http://ww3.sinaimg.cn/large/7458d655gw1f8mfu726tej20wi0egdkj.jpg" alt=""></p>
+<p>JUnit是由Erich Gamma和Kent Beck编写的一个开源的单元测试框架。它属于白盒测试，只要将待测类继承TestCase类，就可以利用JUnit的一系列机制进行便捷的自动测试了。</p>
+<a id="more"></a>
+<p>JUnit的设计精简，易学易用，但是功能却非常强大，这归因于它内部完善的代码结构。JUnit中深深渗透了扩展性优良的设计模式思想。JUnit提供的API既可以让您写出测试结果明确的可重用单元测试用例，也提供了单元测试用例成批运行的功能。在已经实现的框架中，用户可以选择三种方式来显示测试结果，并且 显示的方式本身也是可扩展的。</p>
+<p>###JUnit系统架构<br>通过分析JUnit-3.8.1的源代码文件可以看到，JUnit的源码被分散在6个package中，这个6个package分别为：<code>junit.awtui</code>、<code>junit.swingui</code>、<code>junit.textui</code>、<code>junit.extensions</code>、<code>junit.framework</code>、<code>junit.runner</code>。具体的文件分布图如下：</p>
+<p><img src="http://ww4.sinaimg.cn/large/7458d655gw1f70ojps32aj207405gt93.jpg" alt=""></p>
+<p>通过对源码的分析，我们可以知道，其中<code>junit.awtui</code>、<code>junit.swingui</code>、<code>junit.textui</code>这三个package是有关JUnit运行时的入口程序以及运行结果显示界面的，junit.runner中则包含了支持单元测试运行的一些基础类以及自己的类加载器，这四个package的运行逻辑对于JUnit的用户来说，都是透明无法感知的，用户只能感知到JUnit测试时的运行界面以及相关的运行结果的展示。<code>junit.extensions、junit</code>.framework这两个package则是JUnit中的核心部分了，其中junit.framework 包含有编写一般JUnit单元测试类必须是用到的JUnit类；而junit.extensions则是对framework包在功能上的一些必要扩展以及为更多的功能扩展留下的接口。</p>
+<p>通过对JUnit源码的package分析，可以得到以下三个package的类图：<br>1.<code>junit.framework</code>的类图<br><img src="http://ww4.sinaimg.cn/large/7458d655gw1f70ojpmbi0j20jq0fugmb.jpg" alt=""></p>
+<p>2.<code>junit.extensions</code>的类图<br><img src="http://ww1.sinaimg.cn/large/7458d655gw1f70ojp4d21j20eg0h8wf1.jpg" alt=""></p>
+<p>3.<code>junit.runner</code>的类图<br><img src="http://ww1.sinaimg.cn/large/7458d655gw1f70ojpmyo4j20lo0hsdgy.jpg" alt=""></p>
+<p>###JUnit工作流程解析<br>Junit的主要功能就是简化单元测试，由于其代码中使用了很多的设计模式，因此纯粹从源码的角度分析其工作流程相对比较复杂，因此此处使用一个简单的测试用例来描述Junit的工作流程，这样会更容易理解其流程时序。</p>
+<p><img src="http://ww4.sinaimg.cn/large/7458d655gw1f70ojpm1j9j20h8052t9b.jpg" alt=""></p>
+<p>这段代码为一个我们将要测试的类，其中只有一个简单的<code>add()</code>方法，其功能是实现两个double类型的数值相加。</p>
+<p>接下来我们将会对其编写对应的JUnit测试代码。</p>
+<p><img src="http://ww1.sinaimg.cn/large/7458d655gw1f70ojq19z4j20j60i4adp.jpg" alt=""></p>
+<p>在上述测试代码中，我们的测试类<code>TestCalculator</code>继承了<code>TestCase</code>类（当然，我们还有一种编写方式不用继承<code>TestCase</code>类，但是我们需要在每个测试方法上添加@Test的注解），在测试类中，我们编写了<code>testAdd()</code>测试方法，同时一个必然失败的测试方法<code>testFail()</code>，这样可以便于我们更全面的了解JUnit运行机制。</p>
+<p>通过对上述测试代码的分析以及JUnit源码的分析，我们可以为此次的用例总结出以下的时序图，这张图为我们清楚的展示了JUnit实现单元测试的内部机制。</p>
+<p><img src="http://ww4.sinaimg.cn/large/7458d655gw1f70ojr7r2bj20jy0g175i.jpg" alt=""></p>
+<p>JUnit的完整生命周期分为3个阶段：初始化阶段、运行阶段和结果捕捉阶段。</p>
+<p>1.初始化阶段：</p>
+<p><img src="http://ww2.sinaimg.cn/large/7458d655gw1f70ojpagt5j20e408140g.jpg" alt=""></p>
+<p>通过分析源码，可以看到JUnit的入口点在<code>junit.textui.TestRunner</code>的<code>main</code>方法，在这个方法中，首先创建一个<code>TestRunner</code>实例<code>aTestRunner</code>，然后<code>main</code>函数中主体工作函数为<code>TestResult r = aTestRunner.start(args)</code>。此时<code>TestRunner</code>实例存在并开始工作。接下来进入<code>start()</code>方法中：</p>
+<p><img src="http://ww4.sinaimg.cn/large/7458d655gw1f70ojphsxkj20ug0gjwj2.jpg" alt=""></p>
+<p>首先，对于参数的检查和解析。接下来通过<code>Test suite= getTest(testCase)</code>将对<code>testCase</code>持有的全限定名进行解析，并构造<code>TestSuite</code>。进入<code>getTest</code>方法中：</p>
+<p><img src="http://ww3.sinaimg.cn/large/7458d655gw1f70ojq6vwhj20gn0ifq7u.jpg" alt=""></p>
+<p>在这段代码中，<code>TestSuite</code>实例开始被构造，而通过代码可以知道，构造方式分为：用户在测试类中通过声明<code>Suite()</code>方法自定义TestSuite和JUnit自动判断并提取测试方法两种方式。接下来就进入<code>TestSuite</code>类中构造方法<code>public TestSuite(final Class theClass)</code>。</p>
+<p><img src="http://ww3.sinaimg.cn/large/7458d655gw1f70ojpejf2j20j407d76o.jpg" alt=""></p>
+<p>在这中间，可以可以看到测试用例由<code>addTestMethod</code>方法全部添加到<code>TestSuite</code>中，继续跟进<code>addTestMethod</code>方法：</p>
+<p><img src="http://ww1.sinaimg.cn/large/7458d655gw1f70ojpvbvbj20kl07uac9.jpg" alt=""></p>
+<p>在这中间可以看到<code>addTestMethod</code>的具体实现，主要的就是<code>addTest</code>，其实这个方法只是简单封装了一个对全局的容器变量<code>fTests</code>的添加值操作。最重要的还是那个<code>createTest</code>方法，进入看看细节：</p>
+<p><img src="http://ww3.sinaimg.cn/large/7458d655gw1f70ojreir4j20ux0g1q9l.jpg" alt=""></p>
+<p>在这中间就可以看到各个测试用例方法通过反射机制：<code>test= constructor.newInstance(new Object[]{name})</code>转化成一个个<code>TestCase</code>实例。<br>至此，JUnit的初始化过程就结束了。</p>
+<p>2.测试运行阶段：</p>
+<p>在<code>TestRunner</code>中的<code>start()</code>方法中可以看到开始调用<code>doRun()</code>方法开始执行测试了。</p>
+<p><img src="http://ww3.sinaimg.cn/large/7458d655gw1f70ojpdkxvj20je04yaav.jpg" alt=""></p>
+<p>进入<code>doRun()</code>方法中可以看到：</p>
+<p><img src="http://ww2.sinaimg.cn/large/7458d655gw1f70ojpnntxj20f507wac3.jpg" alt=""></p>
+<p>首先是利用<code>createTestResult()</code>方法生成一个<code>TestResult</code>实例，而<code>createTestResult()</code>方法其实也就是new一个<code>TestResult</code>实例，然后将<code>junit.textui.TestRunner</code>的监听器<code>fPrinter</code>加入到result 的监听器列表中。其中，<code>fPrinter</code>是<code>junit.textui.ResultPrinter</code>类的实例，该类提供了向控制台输出测试结果的一系列功能接口，输出的格式在类中定义。<code>ResultPrinter</code>类实现了<code>TestListener</code>接口，具体实现了<code>addError</code>、<code>addFailure</code>、<code>endTest</code>和<code>startTest</code>四个重要的方法，这种设计体现了Observer设计模式。而将<code>ResultPrinter</code>对象加入到<code>TestResult</code>对象的监听器列表中，因此实质上<code>TestResult</code>对象可以有多个监听器显示测试结果。<br>接下来我们查看run方法，可以看到：</p>
+<p><img src="http://ww1.sinaimg.cn/large/7458d655gw1f70ojql4mcj20h907uwg5.jpg" alt=""></p>
+<p>此处JUnit代码颇具说服力地说明了Composite模式的效力，run接口方法的抽象具有重大意义，它实现了客户代码与复杂对象容器结构的解耦，让对象容器自己来实现自身的复杂结构，从而使得客户代码就像处理简单对象一样来处理复杂的对象容器。每次循环得到的节点test，都同result一起传递给<code>runTest</code>方法，进行下一步更深入的运行。<br>在这样递归的运行之后， <code>junit.framework.TestResult.run</code>相应的结果<code>TestResult</code>实例中：</p>
+<p><img src="http://ww4.sinaimg.cn/large/7458d655gw1f70ojq2m4ej20eo08wwfv.jpg" alt=""></p>
+<p><img src="http://ww1.sinaimg.cn/large/7458d655gw1f70ojq38srj20j80930ud.jpg" alt=""></p>
+<p>这中间实现了<code>Protectable</code>接口的匿名类的实例，<code>runProtected</code>则是实际把那个刚刚实现的匿名类实例中的<code>runBare()</code>方法执行了。</p>
+<p><img src="http://ww4.sinaimg.cn/large/7458d655gw1f70ojq9d4xj20f208cdgw.jpg" alt=""></p>
+<p>在该方法中，最终的测试会传递给一个<code>runTest</code>方法执行，注意此处的<code>unTest</code>方法是无参的，注意与之前形似的方法区别。该方法中也出现了经典的<code>setUp</code>方法和<code>tearDown</code>方法，追溯代码可知它们的定义为空。用户可以覆盖两者，进行一些fixture的自定义和搭建。这中间其实就蕴含了模板模式的思想了。<br>其中，最为主要的还是<code>runTest()</code>方法：</p>
+<p><img src="http://ww3.sinaimg.cn/large/7458d655gw1f70ojr43xyj20g90fxgq9.jpg" alt=""></p>
+<p>在这里，通过反射机制<code>runMethod= getClass().getMethod(fName, null);</code>提取<code>TestCase</code>中的方法，然后为每一个测试方法，创建一个方法对象<code>unMethod</code>并调用<code>runMethod.invoke(this, new Class[0]);</code>，至此，用户测试方法的代码才开始真正被运行起来。当然剩下就是些异常捕获和处理。</p>
+<p>3.测试结果捕捉阶段：</p>
+<p>运行已经完成了，现在就是看结果了，当一切都是OK，当然是没问题啦。</p>
+<p><img src="http://ww4.sinaimg.cn/large/7458d655gw1f70ojq35f8j20iy0aq766.jpg" alt=""></p>
+<p>当出现错误了或者失败，我们就catch到相应的Error或者Fail，然后用<code>addFailure</code>加入到监听器<code>TestListener</code>中，当然为了区分不同，还可以用<code>addError</code>添加。然后就可以由<code>ResultPrinter</code>将结果输出了：</p>
+<p><img src="http://ww3.sinaimg.cn/large/7458d655gw1f70ojq44d4j20lv08tgnp.jpg" alt=""></p>
+<p>###主要设计模式<br>JUnit中间，使用的设计模式是比较多的，JUnit应该来说是一个学习设计模式的很好的范例。</p>
+<p>在前面的JUnit工作流程分析的单元中，分析过程中，我们已经看到了组合模式（Composite Pattern）：</p>
+<p><img src="http://ww1.sinaimg.cn/large/7458d655gw1f70ojql4mcj20h907uwg5.jpg" alt=""></p>
+<p>其中的run接口方法的抽象实现了客户代码与复杂对象容器结构的解耦，让对象容器自己来实现自身的复杂结构，从而使得客户代码就像处理简单对象一样来处理复杂的对象容器。</p>
+<p>另外，<code>TestCase</code>中<code>runBare()</code>方法则是模板模式的典型范例：</p>
+<p><img src="http://ww2.sinaimg.cn/large/7458d655gw1f70ojq7s8xj20f208cdgw.jpg" alt=""></p>
+<p>这处则是充分体现了模板模式中将一些步骤延迟到子类中的思想。</p>
+<p>而观察者模式则是体现在下方：<br><code>TestResult</code>并不是一个记录测试结果的类，而是观察者模式中的主题角色。每个<code>TestCase</code>运行的时候都是用<code>TestResult</code>来运行的，这样才能通知每个观察者方法要开始运行了。在这里，观察者就是那些显示方式，比如Text,Swing,Awt那几种UI的显示类。</p>
+<p>命令模式则是表现在编写测试用例时，JUnit只是一个测试用例的执行器和结果查看器，而与实际用例的编写没有关联，处于完全解耦的状态。</p>
+<p>###参考资料<br>[1]《分析JUnit框架源代码》，何正华、徐晔，<a href="http://www.ibm.com/developerworks/cn/java/j-lo-junit-src/" target="_blank" rel="external">http://www.ibm.com/developerworks/cn/java/j-lo-junit-src/</a><br>[2]《JUnit源码分析》，匿名，<a href="http://blog.csdn.net/ai92/article/details/318318" target="_blank" rel="external">http://blog.csdn.net/ai92/article/details/318318</a><br>[3]《HeadFirst设计模式》，Freeman,E.,O’Reilly Taiwan公司译，中国电力出版社<br>[4] JUnit-3.8.1源码</p>
+
+      
+    </div>
+    <footer>
+      
+        
+  
+  <div class="categories">
+    <a href="/categories/学习/">学习</a>
+  </div>
+
+        
+  
+  <div class="tags">
+    <a href="/tags/JUnit/">JUnit</a>, <a href="/tags/源码分析/">源码分析</a>, <a href="/tags/开源/">开源</a>
+  </div>
+
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+<section id="comment">
+  <h1 class="title">留言</h1>
+  
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+  
+</section>
+
+</div></div>
+    <aside id="sidebar" class="alignright">
+  <div class="search">
+  <form action="//google.com/search" method="get" accept-charset="utf-8">
+    <input type="search" name="q" results="0" placeholder="搜索">
+    <input type="hidden" name="q" value="site:xidianpanpei.github.io">
+  </form>
+</div>
+
+  
+<div class="widget tag">
+  <h3 class="title">最新文章</h3>
+  <ul class="entry">
+    
+      <li>
+        <a href="/2015/04/30/build-windows-work-environment/">Windows终端环境搭建</a>
+      </li>
+    
+      <li>
+        <a href="/2014/10/08/baidu-interview/">百度系统工程师初面之经历</a>
+      </li>
+    
+      <li>
+        <a href="/2014/08/12/ceilometer-architecture-analyse/">Ceilometer架构简要分析</a>
+      </li>
+    
+      <li>
+        <a href="/2014/05/22/openstack-neutron-analyse/">OpenStack Neutron解析</a>
+      </li>
+    
+      <li>
+        <a href="/2014/03/28/design-patterns-factory-mode/">设计模式之工厂模式</a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+<div class="widget tagcloud">
+  <h3 class="title">标签云</h3>
+  <div class="entry">
+    <a href="/tags/360WiFi/" style="font-size: 10px;">360WiFi</a> <a href="/tags/ACM/" style="font-size: 12.5px;">ACM</a> <a href="/tags/Babun/" style="font-size: 10px;">Babun</a> <a href="/tags/Ceilometer/" style="font-size: 12.5px;">Ceilometer</a> <a href="/tags/C语言/" style="font-size: 10px;">C语言</a> <a href="/tags/ElementaryOS/" style="font-size: 10px;">ElementaryOS</a> <a href="/tags/Gmail/" style="font-size: 10px;">Gmail</a> <a href="/tags/Google-Code/" style="font-size: 10px;">Google Code</a> <a href="/tags/JUnit/" style="font-size: 10px;">JUnit</a> <a href="/tags/LaTeX/" style="font-size: 12.5px;">LaTeX</a> <a href="/tags/Neutron/" style="font-size: 12.5px;">Neutron</a> <a href="/tags/OpenStack/" style="font-size: 17.5px;">OpenStack</a> <a href="/tags/PHP/" style="font-size: 10px;">PHP</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/Resume/" style="font-size: 10px;">Resume</a> <a href="/tags/TortoiseSVN/" style="font-size: 10px;">TortoiseSVN</a> <a href="/tags/Ubuntu/" style="font-size: 10px;">Ubuntu</a> <a href="/tags/Windows/" style="font-size: 10px;">Windows</a> <a href="/tags/Yahoo/" style="font-size: 10px;">Yahoo</a> <a href="/tags/Yii/" style="font-size: 10px;">Yii</a> <a href="/tags/commons-logging/" style="font-size: 10px;">commons-logging</a> <a href="/tags/freegate/" style="font-size: 10px;">freegate</a> <a href="/tags/git/" style="font-size: 10px;">git</a> <a href="/tags/vbs/" style="font-size: 10px;">vbs</a> <a href="/tags/代码管理/" style="font-size: 10px;">代码管理</a> <a href="/tags/写作/" style="font-size: 10px;">写作</a> <a href="/tags/博客/" style="font-size: 12.5px;">博客</a> <a href="/tags/堆排序/" style="font-size: 10px;">堆排序</a> <a href="/tags/安庆/" style="font-size: 10px;">安庆</a> <a href="/tags/密码/" style="font-size: 10px;">密码</a> <a href="/tags/工作/" style="font-size: 10px;">工作</a> <a href="/tags/工作环境/" style="font-size: 10px;">工作环境</a> <a href="/tags/工厂模式/" style="font-size: 10px;">工厂模式</a> <a href="/tags/开源/" style="font-size: 15px;">开源</a> <a href="/tags/快速排序/" style="font-size: 10px;">快速排序</a> <a href="/tags/抽象工厂模式/" style="font-size: 10px;">抽象工厂模式</a> <a href="/tags/指针/" style="font-size: 10px;">指针</a> <a href="/tags/机试/" style="font-size: 10px;">机试</a> <a href="/tags/测试/" style="font-size: 10px;">测试</a> <a href="/tags/浙大/" style="font-size: 10px;">浙大</a> <a href="/tags/源码分析/" style="font-size: 10px;">源码分析</a> <a href="/tags/爬虫/" style="font-size: 10px;">爬虫</a> <a href="/tags/生活/" style="font-size: 12.5px;">生活</a> <a href="/tags/登录/" style="font-size: 10px;">登录</a> <a href="/tags/百度/" style="font-size: 10px;">百度</a> <a href="/tags/碎碎念/" style="font-size: 20px;">碎碎念</a> <a href="/tags/简历/" style="font-size: 10px;">简历</a> <a href="/tags/算法/" style="font-size: 15px;">算法</a> <a href="/tags/终端/" style="font-size: 10px;">终端</a> <a href="/tags/翻墙/" style="font-size: 10px;">翻墙</a> <a href="/tags/论文/" style="font-size: 10px;">论文</a> <a href="/tags/设计模式/" style="font-size: 12.5px;">设计模式</a> <a href="/tags/邮箱/" style="font-size: 10px;">邮箱</a> <a href="/tags/面试/" style="font-size: 10px;">面试</a> <a href="/tags/骑行/" style="font-size: 10px;">骑行</a>
+  </div>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">分类</h3>
+  <ul class="entry">
+  
+    <li><a href="/categories/C-C/">C/C++</a><small>1</small></li>
+  
+    <li><a href="/categories/Git/">Git</a><small>1</small></li>
+  
+    <li><a href="/categories/LaTeX/">LaTeX</a><small>2</small></li>
+  
+    <li><a href="/categories/OpenStack/">OpenStack</a><small>4</small></li>
+  
+    <li><a href="/categories/PHP/">PHP</a><small>1</small></li>
+  
+    <li><a href="/categories/Python/">Python</a><small>1</small></li>
+  
+    <li><a href="/categories/博客/">博客</a><small>1</small></li>
+  
+    <li><a href="/categories/学习/">学习</a><small>7</small></li>
+  
+    <li><a href="/categories/开源/">开源</a><small>1</small></li>
+  
+    <li><a href="/categories/杂项/">杂项</a><small>7</small></li>
+  
+    <li><a href="/categories/生活/">生活</a><small>4</small></li>
+  
+    <li><a href="/categories/算法/">算法</a><small>2</small></li>
+  
+    <li><a href="/categories/设计模式/">设计模式</a><small>2</small></li>
+  
+    <li><a href="/categories/评论/">评论</a><small>1</small></li>
+  
+    <li><a href="/categories/面试/">面试</a><small>1</small></li>
+  
+  </ul>
+</div>
+
+
+  <div class="widget tag">
+<h3 class="title">友情链接</h3>
+<ul class="entry">
+<li><a href="http://wtz123.github.io/" title="花开只一季，一季开一年的男人">Tony's Blog</a></li>
+</ul>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2017 crAzyli0n
+  
+</div>
+<div class="clearfix"></div></footer>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+<script type="text/javascript">
+var disqus_shortname = 'crazyli0nsblog';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+</body>
+</html>

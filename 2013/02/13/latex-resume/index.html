@@ -1,0 +1,277 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>利用LaTeX制作个人简历 | crAzyli0n&#39;s blog</title>
+  <meta name="author" content="crAzyli0n">
+  
+  <meta name="description" content="crAzyli0n&#39;s blog">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="利用LaTeX制作个人简历"/>
+  <meta property="og:site_name" content="crAzyli0n&#39;s blog"/>
+
+  
+    <meta property="og:image" content="undefined"/>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="crAzyli0n&#39;s blog" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+
+</head>
+
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">crAzyli0n&#39;s blog</a></h1>
+  <h2><a href="/">记录前进中的点点滴滴</a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+      <li><a href="/about">About</a></li>
+    
+    <li> <a href="https://github.com/xidianpanpei">GitHub</a> </li>
+    <li> <a href="/atom.xml">RSS</a> </li>
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div></header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft"><div id="wrapper"><article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2013-02-13T02:30:00.000Z"><a href="/2013/02/13/latex-resume/">2013-02-13</a></time>
+      
+      
+  
+    <h1 class="title">利用LaTeX制作个人简历</h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p>前些日子，有点无聊，就在网上逛逛技术大牛的blogs，发现很多大牛都喜欢用pdf版式的简历，发现这种版式的简历排版非常漂亮简洁。深究了一下，发现其实是利用LaTeX生成的（多说一句，不得不佩服<em>DonaldE.Knuth</em>大师发明的TeX排版的确是美观）。</p>
+<p>LaTeX或许不是很多人知道，但是那些忙着发papers的Master Candidate、Ph.D Candidate应该是非常了解的。当然，那些苦逼的数学系的孩子们应该也是知道，因为word对于数学公式的排版效果相比于LaTeX，还是差的远了。至于LaTeX的具体信息，这里就不废话，有兴趣的同学可以到Google上百度一下的。</p>
+<p>言归正传，LaTeX写简历谈何容易，尤其是从头写起，还尤其对于我这样的LaTeX菜鸟而言，更是难如登天。于是Google了一把，找到一个叫<code>moderncv</code>的共享简历模板。有了模板，那么就简单多了（插嘴一句，其实发现有些大牛用的也是这个模板改写的）。</p>
+<a id="more"></a>
+<p>moderncv下载地址：<a href="http://www.ctan.org/tex-archive/macros/latex/contrib/moderncv" target="_blank" rel="external">http://www.ctan.org/tex-archive/macros/latex/contrib/moderncv</a></p>
+<p>下载下来后应该是一个zip包，解压后目录如下：</p>
+<p><img src="/img/2013/02/13/latex-resume-step-1.png" alt=""></p>
+<p>其中.sty文件都是定义简历风格的文件，还有那个<code>moderncv.cls</code>文件。其实这些都是编写LaTeX风格源码后生成的，有兴趣的同学可以继续深究一下LaTeX的其他知识，应该会有所收获的。这些文件在后我们编译自己的简历时会用到。</p>
+<p>接下来看看examples文件夹：</p>
+<p><img src="/img/2013/02/13/latex-resume-step-2.png" alt=""></p>
+<p>好了，这里面东西也很多，稍微懂点LaTeX的同学就会知道，其实，只有那几个.tex文件使我们想要的，而且也是非常重要的。为什么？因为那些个文件就是模板啊。我们的简历的生成就靠它们了。</p>
+<p><code>.tex</code>文件有三个：<code>template.tex</code>，<code>template-es.tex</code>，<code>template-zh.tex</code>，顾名思义，这个三个模板表示中英文简历的模板，其实<code>template.tex</code>就是英文模板，而<code>template-es.tex</code>是什么语种的模板，我也不知道，反正不是英文模板。</p>
+<p>好了，剩下就是开始写我们的简历了，我们先建立一个文件夹，如MyCV之类的啦，然后把前面提到的<code>.sty</code>文件、<code>.cls</code>文件还有<code>.tex</code>的模板文件放进去。就像下面：</p>
+<p><img src="/img/2013/02/13/latex-resume-step-3.png" alt=""></p>
+<p>把模板文件的名字改成个人喜好的都可以的，如我就改成了<code>my_cv_en.tex</code>和<code>my_cv_en.tex</code>。剩下来我们就开始对我们的简历模板开始编辑了，我是用的NotePad++，当然大家可以用其他的编辑器，如WinEdt、Texmaker，甚至你可以用word，txt等等，当然我是既不赞成后两者的，尤其txt，当你使用后，就会对那一对没有高亮显示，没有缩进的代码抓狂的。</p>
+<p>这个是我用Notepad++打开的<code>template.tex</code>的文档，效果还是可以的。</p>
+<p><img src="/img/2013/02/13/latex-resume-step-4.png" alt=""></p>
+<p>好了，如何改写这堆代码，其实挺容易的，模板中有着那么多的注释，很好的改的（好吧，我有点偷懒，这个以后再介绍）。</p>
+<p>等我们改好个人信息后，剩下来就是编译了。</p>
+<p>我用的是CTex的套装，然后利用WinEdt来编译，这个的确是有点偷懒了，不过可视化的界面的确是方便啊。用WinEdt打开我们编辑的<code>.tex</code>文件就可以了，当然，也可以用这个编辑器去编辑.tex文件。</p>
+<p>CTex下载地址：<a href="http://www.ctex.org/HomePage" target="_blank" rel="external">http://www.ctex.org/HomePage</a></p>
+<p>CTex中其实就包含有WinEdt。</p>
+<p><img src="/img/2013/02/13/latex-resume-step-5.png" alt=""></p>
+<p>英文模板直接用那个LaTeX按钮编译，中文模板涉及到编码问题，用那个XeLaTeX按钮。只要中间我们没有写错什么语句之类的，接下来我们就可以在文件夹中，如MyCVS，看到生成的pdf文件。排版效果相当的不错滴。</p>
+<p>模板风格有好几个，如casual(default), classic, oldstyle 以及banking，还有颜色也有几种，blue(default), orange, green, red, purple, grey 和black。具体的要求可以根据注释自行搭配。</p>
+<p>blue-casual</p>
+<p><img src="/img/2013/02/13/latex-resume-step-6.png" alt=""></p>
+<p><img src="/img/2013/02/13/latex-resume-step-7.png" alt=""></p>
+<p><img src="/img/2013/02/13/latex-resume-step-8.png" alt=""></p>
+<p>其他几种风格：</p>
+<p><img src="/img/2013/02/13/latex-resume-step-9.png" alt=""></p>
+<p><img src="/img/2013/02/13/latex-resume-step-10.png" alt=""></p>
+<p><img src="/img/2013/02/13/latex-resume-step-11.png" alt=""></p>
+<p><img src="/img/2013/02/13/latex-resume-step-12.png" alt=""></p>
+<p><img src="/img/2013/02/13/latex-resume-step-13.png" alt=""></p>
+
+      
+    </div>
+    <footer>
+      
+        
+  
+  <div class="categories">
+    <a href="/categories/LaTeX/">LaTeX</a>
+  </div>
+
+        
+  
+  <div class="tags">
+    <a href="/tags/LaTeX/">LaTeX</a>, <a href="/tags/Resume/">Resume</a>, <a href="/tags/简历/">简历</a>
+  </div>
+
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+<section id="comment">
+  <h1 class="title">留言</h1>
+  
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+  
+</section>
+
+</div></div>
+    <aside id="sidebar" class="alignright">
+  <div class="search">
+  <form action="//google.com/search" method="get" accept-charset="utf-8">
+    <input type="search" name="q" results="0" placeholder="搜索">
+    <input type="hidden" name="q" value="site:xidianpanpei.github.io">
+  </form>
+</div>
+
+  
+<div class="widget tag">
+  <h3 class="title">最新文章</h3>
+  <ul class="entry">
+    
+      <li>
+        <a href="/2015/04/30/build-windows-work-environment/">Windows终端环境搭建</a>
+      </li>
+    
+      <li>
+        <a href="/2014/10/08/baidu-interview/">百度系统工程师初面之经历</a>
+      </li>
+    
+      <li>
+        <a href="/2014/08/12/ceilometer-architecture-analyse/">Ceilometer架构简要分析</a>
+      </li>
+    
+      <li>
+        <a href="/2014/05/22/openstack-neutron-analyse/">OpenStack Neutron解析</a>
+      </li>
+    
+      <li>
+        <a href="/2014/03/28/design-patterns-factory-mode/">设计模式之工厂模式</a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+<div class="widget tagcloud">
+  <h3 class="title">标签云</h3>
+  <div class="entry">
+    <a href="/tags/360WiFi/" style="font-size: 10px;">360WiFi</a> <a href="/tags/ACM/" style="font-size: 12.5px;">ACM</a> <a href="/tags/Babun/" style="font-size: 10px;">Babun</a> <a href="/tags/Ceilometer/" style="font-size: 12.5px;">Ceilometer</a> <a href="/tags/C语言/" style="font-size: 10px;">C语言</a> <a href="/tags/ElementaryOS/" style="font-size: 10px;">ElementaryOS</a> <a href="/tags/Gmail/" style="font-size: 10px;">Gmail</a> <a href="/tags/Google-Code/" style="font-size: 10px;">Google Code</a> <a href="/tags/JUnit/" style="font-size: 10px;">JUnit</a> <a href="/tags/LaTeX/" style="font-size: 12.5px;">LaTeX</a> <a href="/tags/Neutron/" style="font-size: 12.5px;">Neutron</a> <a href="/tags/OpenStack/" style="font-size: 17.5px;">OpenStack</a> <a href="/tags/PHP/" style="font-size: 10px;">PHP</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/Resume/" style="font-size: 10px;">Resume</a> <a href="/tags/TortoiseSVN/" style="font-size: 10px;">TortoiseSVN</a> <a href="/tags/Ubuntu/" style="font-size: 10px;">Ubuntu</a> <a href="/tags/Windows/" style="font-size: 10px;">Windows</a> <a href="/tags/Yahoo/" style="font-size: 10px;">Yahoo</a> <a href="/tags/Yii/" style="font-size: 10px;">Yii</a> <a href="/tags/commons-logging/" style="font-size: 10px;">commons-logging</a> <a href="/tags/freegate/" style="font-size: 10px;">freegate</a> <a href="/tags/git/" style="font-size: 10px;">git</a> <a href="/tags/vbs/" style="font-size: 10px;">vbs</a> <a href="/tags/代码管理/" style="font-size: 10px;">代码管理</a> <a href="/tags/写作/" style="font-size: 10px;">写作</a> <a href="/tags/博客/" style="font-size: 12.5px;">博客</a> <a href="/tags/堆排序/" style="font-size: 10px;">堆排序</a> <a href="/tags/安庆/" style="font-size: 10px;">安庆</a> <a href="/tags/密码/" style="font-size: 10px;">密码</a> <a href="/tags/工作/" style="font-size: 10px;">工作</a> <a href="/tags/工作环境/" style="font-size: 10px;">工作环境</a> <a href="/tags/工厂模式/" style="font-size: 10px;">工厂模式</a> <a href="/tags/开源/" style="font-size: 15px;">开源</a> <a href="/tags/快速排序/" style="font-size: 10px;">快速排序</a> <a href="/tags/抽象工厂模式/" style="font-size: 10px;">抽象工厂模式</a> <a href="/tags/指针/" style="font-size: 10px;">指针</a> <a href="/tags/机试/" style="font-size: 10px;">机试</a> <a href="/tags/测试/" style="font-size: 10px;">测试</a> <a href="/tags/浙大/" style="font-size: 10px;">浙大</a> <a href="/tags/源码分析/" style="font-size: 10px;">源码分析</a> <a href="/tags/爬虫/" style="font-size: 10px;">爬虫</a> <a href="/tags/生活/" style="font-size: 12.5px;">生活</a> <a href="/tags/登录/" style="font-size: 10px;">登录</a> <a href="/tags/百度/" style="font-size: 10px;">百度</a> <a href="/tags/碎碎念/" style="font-size: 20px;">碎碎念</a> <a href="/tags/简历/" style="font-size: 10px;">简历</a> <a href="/tags/算法/" style="font-size: 15px;">算法</a> <a href="/tags/终端/" style="font-size: 10px;">终端</a> <a href="/tags/翻墙/" style="font-size: 10px;">翻墙</a> <a href="/tags/论文/" style="font-size: 10px;">论文</a> <a href="/tags/设计模式/" style="font-size: 12.5px;">设计模式</a> <a href="/tags/邮箱/" style="font-size: 10px;">邮箱</a> <a href="/tags/面试/" style="font-size: 10px;">面试</a> <a href="/tags/骑行/" style="font-size: 10px;">骑行</a>
+  </div>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">分类</h3>
+  <ul class="entry">
+  
+    <li><a href="/categories/C-C/">C/C++</a><small>1</small></li>
+  
+    <li><a href="/categories/Git/">Git</a><small>1</small></li>
+  
+    <li><a href="/categories/LaTeX/">LaTeX</a><small>2</small></li>
+  
+    <li><a href="/categories/OpenStack/">OpenStack</a><small>4</small></li>
+  
+    <li><a href="/categories/PHP/">PHP</a><small>1</small></li>
+  
+    <li><a href="/categories/Python/">Python</a><small>1</small></li>
+  
+    <li><a href="/categories/博客/">博客</a><small>1</small></li>
+  
+    <li><a href="/categories/学习/">学习</a><small>7</small></li>
+  
+    <li><a href="/categories/开源/">开源</a><small>1</small></li>
+  
+    <li><a href="/categories/杂项/">杂项</a><small>7</small></li>
+  
+    <li><a href="/categories/生活/">生活</a><small>4</small></li>
+  
+    <li><a href="/categories/算法/">算法</a><small>2</small></li>
+  
+    <li><a href="/categories/设计模式/">设计模式</a><small>2</small></li>
+  
+    <li><a href="/categories/评论/">评论</a><small>1</small></li>
+  
+    <li><a href="/categories/面试/">面试</a><small>1</small></li>
+  
+  </ul>
+</div>
+
+
+  <div class="widget tag">
+<h3 class="title">友情链接</h3>
+<ul class="entry">
+<li><a href="http://wtz123.github.io/" title="花开只一季，一季开一年的男人">Tony's Blog</a></li>
+</ul>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2017 crAzyli0n
+  
+</div>
+<div class="clearfix"></div></footer>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+<script type="text/javascript">
+var disqus_shortname = 'crazyli0nsblog';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+</body>
+</html>

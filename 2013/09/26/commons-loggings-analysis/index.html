@@ -1,0 +1,258 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>commons-logging 源码简析 | crAzyli0n&#39;s blog</title>
+  <meta name="author" content="crAzyli0n">
+  
+  <meta name="description" content="crAzyli0n&#39;s blog">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="commons-logging 源码简析"/>
+  <meta property="og:site_name" content="crAzyli0n&#39;s blog"/>
+
+  
+    <meta property="og:image" content="undefined"/>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="crAzyli0n&#39;s blog" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+
+</head>
+
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">crAzyli0n&#39;s blog</a></h1>
+  <h2><a href="/">记录前进中的点点滴滴</a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+      <li><a href="/about">About</a></li>
+    
+    <li> <a href="https://github.com/xidianpanpei">GitHub</a> </li>
+    <li> <a href="/atom.xml">RSS</a> </li>
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div></header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft"><div id="wrapper"><article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2013-09-26T09:21:00.000Z"><a href="/2013/09/26/commons-loggings-analysis/">2013-09-26</a></time>
+      
+      
+  
+    <h1 class="title">commons-logging 源码简析</h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p><img src="http://ww3.sinaimg.cn/large/7458d655gw1f8mfvg7yelj21kw11x7wh.jpg" alt=""></p>
+<h2 id="日志系统简介"><a href="#日志系统简介" class="headerlink" title="日志系统简介"></a>日志系统简介</h2><p>应用程序中使用日志功能能够方便的调试和跟踪应用程序任意时刻的行为和状态。在大规模的应用开发中尤其重要，毫不夸张的说，日志系统是不可或缺的重要组成部分。由于开源的广泛性，我们不需要再去重复造轮子，我们可以直接使用众多的开源日志系统来满足我们的开发需求。</p>
+<a id="more"></a>
+<p>目前使用最多的日志系统主要有slf4j、commons-logging这样的“门面”日志系统，也有log4j、logback这样的实际执行日志系统。slf4j、commons-logging这类系统它们本身并不是直接实现具体的日志打印逻辑，而只是作为一个代理系统，接收应用程序的日志打印请求，然后根据当前环境和配置，选取一个具体的日志实现系统，将真正的打印逻辑交给具体的日志实现系统，从而实现应用程序日志系统的“可插拔”，即可以通过配置或更换jar包来方便的更换底层日志实现系统，而不需要改变任何代码。</p>
+<p>出于对日志系统的深入学习，我们这次对commons-logging进行源码分析。</p>
+<h2 id="commons-logging源码分析"><a href="#commons-logging源码分析" class="headerlink" title="commons-logging源码分析"></a>commons-logging源码分析</h2><p>我们对下载得到的commons-logging源码进行展开，很容得到commons-logging代码的主要代码结构。</p>
+<p><img src="http://ww1.sinaimg.cn/large/7458d655gw1f70ojqakaqj20870alta8.jpg" alt=""></p>
+<p>其中的，部分代码文件已经作废，至于为什么没有删除掉，这就不得而知了。其中的LogSource.java文件已经作废，而其功能职责则由LogFactory.java代替。LogFactory.java实际只是一个实现接口，具体的实现则是由继承LogFactory.java的LogFactoryImpl.java来完成了。目录中众多其他实现文件则是继承自Log.java接口，对其实现了不同的功能，完成底层的对不同的实际执行日志系统的适配。主要是配有：AvalonLogger、Jdk13LumberjackLogger、Jdk14Logger、Log4JLogger、LogKitLogger、SimpleLog。还有一个ServletContextCleaner.java则是为了WebApp相关项目而准备，用于释放有关的内存。</p>
+<p><img src="http://ww1.sinaimg.cn/large/7458d655gw1f70ojqi8bzj20gl07l74v.jpg" alt=""></p>
+<p>在LogFactory中定义了一定的规则，从而根据当前的环境和配置取得特定的Log子类实例。</p>
+<p>Commons Logging中默认实现的LogFactory（LogFactoryImpl类）查找具体Log实现类的逻辑如下：<br>1.查找在commons-logging.properties文件中是否定存在以org.apache.commons.logging.Log或org.apache.commons.logging.log(旧版本，不建议使用)为key定义的Log实现类，如果是，则使用该类。<br>2.否则，查找在系统属性中（-D方式启动参数）是否存在以org.apache.commons.logging.Log或org.apache.commons.logging.log(旧版本，不建议使用)为key定义的Log实现类，如果是，则使用该类。<br>3.否则，如果在classpath中存在Log4J的jar包，则使用Log4JLogger类。<br>4.否则，如果当前使用的JDK版本或等于1.4，则使用Jdk14Logger类。<br>5.否则，如果存在Lumberjack版本的Logging系统，则使用Jdk13LumberjackLogger类。<br>6.否则，如果可以正常初始化Commons Logging自身实现的SimpleLog实例，则使用该类。<br>7.最后，以上步骤都失败，则抛出LogConfigurationException。  </p>
+<p>我们在使用Commons-Logging的时候，一般都是通过LogFacotry获取Log实例的，然后调用Log接口中相应的方法，而这是一个典型的工厂设计模式。Commons-Logging的实现可以分成以下几个步骤：<br><strong>1.LogFactory类初始化：</strong><br>a.缓存加载LogFactory的ClassLoader（thisClassLoader字段），出于性能考虑。因为getClassLoader()方法以后会使用AccessController，因而缓存起来以提升性能。<br>b.初始化诊断流。读取系统属性org.apache.commons.logging.diagnostics.dest，若该属性的值为STDOUT、STDERR、文件名。则初始化诊断流字段（diagnosticStream），并初始化诊断消息的前缀（diagnosticPrefix），其格式为：“[LogFactory from ]”, 该前缀用于处理在同一个应用程序中可能会有多个ClassLoader加载LogFactory实例的问题。<br>c.如果配置了诊断流，则打印当前环境信息：java.ext.dir、java.class.path、ClassLoader以及ClassLoader层级关系信息。<br>d.初始化factories实例（Hashtable），用于缓存LogFactory（context-classloader –-&lt; LogFactory instance）。如果系统属性org.apache.commons.logging.LogFactory.HashtableImpl存在，则使用该属性定义的Class作为factories Hashtable的实现类，否则，使用Common Logging实现的WeakHashtable。若初始化没有成功，则使用Hashtable类本身。使用WeakHashtable是为了处理在webapp中，当webapp被卸载是引起的内存泄露问题，即当webapp被卸载时，其ClassLoader的引用还存在，该ClassLoader不会被回收而引起内存泄露。因而当不支持WeakHashtable时，需要卸载webapp时，调用LogFactory.relase()方法。<br>e.最后，如果需要打印诊断信息，则打印“BOOTSTRAP COMPLETED”信息。  </p>
+<p><strong>2.查找LogFactory类实现，并实例化：</strong><br>当调用LogFactory.getLog()方法时，它首先会创建LogFactory实例(getFactory())，然后创建相应的Log实例。getFactory()方法不支持线程同步，因而多个线程可能会创建多个相同的LogFactory实例，由于创建多个LogFactory实例对系统并没有影响，因而可以不用实现同步机制。<br>a.获取context-classloader实例。<br>b.从factories Hashtable（缓存）中获取LogFactory实例。<br>c.读取commons-logging.properties配置文件（如果存在的话，如果存在多个，则可以定义priority属性值，取所有commons-logging.properties文件中priority数值最大的文件），如果设置use_tccl属性为false，则在类的加载过程中使用初始化cache的thisClassLoader字段，而不用context ClassLoader。<br>d.查找系统属性中是否存在org.apache.commons.logging.LogFactory值，若有，则使用该值作为LogFactory的实现类，并实例化该LogFactory实例。<br>e.使用service provider方法查找LogFactory的实现类，并实例化。对应Service ID是：META-INF/services/org.apache.commons.logging.LogFactory<br>f.查找commons-logging.properties文件中是否定义了LogFactory的实现类：org.apache.commons.logging.LogFactory，是则用该类实例化一个出LogFactory<br>g.否则，使用默认的LogFactory实现：LogFactoryImpl类。<br>h.缓存新创建的LogFactory实例，并将commons-logging.properties配置文件中所有的键值对加到LogFactory的属性集合中。  </p>
+<p><strong>3.通过LogFactory实例查找Log实例（LogFactoryImpl实现）：</strong><br>使用LogFactory实例调用getInstance()方法取得Log实例。<br>a.如果缓存（instances字段，Hashtable）存在，则使用缓存中的值。<br>b.查找用户自定义的Log实例，即从先从commons-logging.properties配置文件中配置的org.apache.commons.logging.Log（org.apache.commons.logging.log，旧版本）类，若不存在，查找系统属性中配置的org.apache.commons.logging.Log（org.apache.commons.logging.log，旧版本）类。如果找到，实例化Log实例<br>c.遍历classesToDiscover数组，尝试创建该数组中定义的Log实例，并缓存Log类的Constructor实例，在下次创建Log实例是就不需要重新计算。在创建Log实例时，如果use_tccl属性设为false，则使用当前ClassLoader（加载当前LogFactory类的ClassLoader），否则尽量使用Context ClassLoader，一般来说Context ClassLoader和当前ClassLoader相同或者是当前ClassLoader的下层ClassLoader，然而在很多自定义ClassLoader系统中并没有设置正确的Context ClassLoader导致当前ClassLoader成了Context ClassLoader的下层，LogFactoryImpl默认处理这种情况，即使用当前ClassLoader。用户可以通过设置org.apache.commons.logging.Log.allowFlawedContext配置作为这个特性的开关。<br>d.如果Log类定义setLogFactory()方法，则调用该方法，将当前LogFactory实例传入。<br>e.将新创建的Log实例存入缓存中。  </p>
+<p><strong>4.调用Log实例中相应的方法</strong>  </p>
+<p>通过对commons-logging的分析，可以发现其实现的思路相对来说还是比较简单的，源码的整体结构也非常清晰，代码的数量也不是很多，里面的注释也是十分的清晰明了。</p>
+
+      
+    </div>
+    <footer>
+      
+        
+  
+  <div class="categories">
+    <a href="/categories/学习/">学习</a>
+  </div>
+
+        
+  
+  <div class="tags">
+    <a href="/tags/开源/">开源</a>, <a href="/tags/commons-logging/">commons-logging</a>
+  </div>
+
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+<section id="comment">
+  <h1 class="title">留言</h1>
+  
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+  
+</section>
+
+</div></div>
+    <aside id="sidebar" class="alignright">
+  <div class="search">
+  <form action="//google.com/search" method="get" accept-charset="utf-8">
+    <input type="search" name="q" results="0" placeholder="搜索">
+    <input type="hidden" name="q" value="site:xidianpanpei.github.io">
+  </form>
+</div>
+
+  
+<div class="widget tag">
+  <h3 class="title">最新文章</h3>
+  <ul class="entry">
+    
+      <li>
+        <a href="/2015/04/30/build-windows-work-environment/">Windows终端环境搭建</a>
+      </li>
+    
+      <li>
+        <a href="/2014/10/08/baidu-interview/">百度系统工程师初面之经历</a>
+      </li>
+    
+      <li>
+        <a href="/2014/08/12/ceilometer-architecture-analyse/">Ceilometer架构简要分析</a>
+      </li>
+    
+      <li>
+        <a href="/2014/05/22/openstack-neutron-analyse/">OpenStack Neutron解析</a>
+      </li>
+    
+      <li>
+        <a href="/2014/03/28/design-patterns-factory-mode/">设计模式之工厂模式</a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+<div class="widget tagcloud">
+  <h3 class="title">标签云</h3>
+  <div class="entry">
+    <a href="/tags/360WiFi/" style="font-size: 10px;">360WiFi</a> <a href="/tags/ACM/" style="font-size: 12.5px;">ACM</a> <a href="/tags/Babun/" style="font-size: 10px;">Babun</a> <a href="/tags/Ceilometer/" style="font-size: 12.5px;">Ceilometer</a> <a href="/tags/C语言/" style="font-size: 10px;">C语言</a> <a href="/tags/ElementaryOS/" style="font-size: 10px;">ElementaryOS</a> <a href="/tags/Gmail/" style="font-size: 10px;">Gmail</a> <a href="/tags/Google-Code/" style="font-size: 10px;">Google Code</a> <a href="/tags/JUnit/" style="font-size: 10px;">JUnit</a> <a href="/tags/LaTeX/" style="font-size: 12.5px;">LaTeX</a> <a href="/tags/Neutron/" style="font-size: 12.5px;">Neutron</a> <a href="/tags/OpenStack/" style="font-size: 17.5px;">OpenStack</a> <a href="/tags/PHP/" style="font-size: 10px;">PHP</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/Resume/" style="font-size: 10px;">Resume</a> <a href="/tags/TortoiseSVN/" style="font-size: 10px;">TortoiseSVN</a> <a href="/tags/Ubuntu/" style="font-size: 10px;">Ubuntu</a> <a href="/tags/Windows/" style="font-size: 10px;">Windows</a> <a href="/tags/Yahoo/" style="font-size: 10px;">Yahoo</a> <a href="/tags/Yii/" style="font-size: 10px;">Yii</a> <a href="/tags/commons-logging/" style="font-size: 10px;">commons-logging</a> <a href="/tags/freegate/" style="font-size: 10px;">freegate</a> <a href="/tags/git/" style="font-size: 10px;">git</a> <a href="/tags/vbs/" style="font-size: 10px;">vbs</a> <a href="/tags/代码管理/" style="font-size: 10px;">代码管理</a> <a href="/tags/写作/" style="font-size: 10px;">写作</a> <a href="/tags/博客/" style="font-size: 12.5px;">博客</a> <a href="/tags/堆排序/" style="font-size: 10px;">堆排序</a> <a href="/tags/安庆/" style="font-size: 10px;">安庆</a> <a href="/tags/密码/" style="font-size: 10px;">密码</a> <a href="/tags/工作/" style="font-size: 10px;">工作</a> <a href="/tags/工作环境/" style="font-size: 10px;">工作环境</a> <a href="/tags/工厂模式/" style="font-size: 10px;">工厂模式</a> <a href="/tags/开源/" style="font-size: 15px;">开源</a> <a href="/tags/快速排序/" style="font-size: 10px;">快速排序</a> <a href="/tags/抽象工厂模式/" style="font-size: 10px;">抽象工厂模式</a> <a href="/tags/指针/" style="font-size: 10px;">指针</a> <a href="/tags/机试/" style="font-size: 10px;">机试</a> <a href="/tags/测试/" style="font-size: 10px;">测试</a> <a href="/tags/浙大/" style="font-size: 10px;">浙大</a> <a href="/tags/源码分析/" style="font-size: 10px;">源码分析</a> <a href="/tags/爬虫/" style="font-size: 10px;">爬虫</a> <a href="/tags/生活/" style="font-size: 12.5px;">生活</a> <a href="/tags/登录/" style="font-size: 10px;">登录</a> <a href="/tags/百度/" style="font-size: 10px;">百度</a> <a href="/tags/碎碎念/" style="font-size: 20px;">碎碎念</a> <a href="/tags/简历/" style="font-size: 10px;">简历</a> <a href="/tags/算法/" style="font-size: 15px;">算法</a> <a href="/tags/终端/" style="font-size: 10px;">终端</a> <a href="/tags/翻墙/" style="font-size: 10px;">翻墙</a> <a href="/tags/论文/" style="font-size: 10px;">论文</a> <a href="/tags/设计模式/" style="font-size: 12.5px;">设计模式</a> <a href="/tags/邮箱/" style="font-size: 10px;">邮箱</a> <a href="/tags/面试/" style="font-size: 10px;">面试</a> <a href="/tags/骑行/" style="font-size: 10px;">骑行</a>
+  </div>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">分类</h3>
+  <ul class="entry">
+  
+    <li><a href="/categories/C-C/">C/C++</a><small>1</small></li>
+  
+    <li><a href="/categories/Git/">Git</a><small>1</small></li>
+  
+    <li><a href="/categories/LaTeX/">LaTeX</a><small>2</small></li>
+  
+    <li><a href="/categories/OpenStack/">OpenStack</a><small>4</small></li>
+  
+    <li><a href="/categories/PHP/">PHP</a><small>1</small></li>
+  
+    <li><a href="/categories/Python/">Python</a><small>1</small></li>
+  
+    <li><a href="/categories/博客/">博客</a><small>1</small></li>
+  
+    <li><a href="/categories/学习/">学习</a><small>7</small></li>
+  
+    <li><a href="/categories/开源/">开源</a><small>1</small></li>
+  
+    <li><a href="/categories/杂项/">杂项</a><small>7</small></li>
+  
+    <li><a href="/categories/生活/">生活</a><small>4</small></li>
+  
+    <li><a href="/categories/算法/">算法</a><small>2</small></li>
+  
+    <li><a href="/categories/设计模式/">设计模式</a><small>2</small></li>
+  
+    <li><a href="/categories/评论/">评论</a><small>1</small></li>
+  
+    <li><a href="/categories/面试/">面试</a><small>1</small></li>
+  
+  </ul>
+</div>
+
+
+  <div class="widget tag">
+<h3 class="title">友情链接</h3>
+<ul class="entry">
+<li><a href="http://wtz123.github.io/" title="花开只一季，一季开一年的男人">Tony's Blog</a></li>
+</ul>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2017 crAzyli0n
+  
+</div>
+<div class="clearfix"></div></footer>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+<script type="text/javascript">
+var disqus_shortname = 'crazyli0nsblog';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+</body>
+</html>
